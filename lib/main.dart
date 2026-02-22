@@ -1,0 +1,37 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+import 'package:device_preview/device_preview.dart';
+import 'package:nli_apps/Screens/splash_screen.dart';
+
+// Define color constants
+const kPrimaryColor = Color.fromARGB(255, 11, 97, 236);
+const kSecondaryColor = Color(0xFF004D40);
+const kTextColor = Color(0xFF212121);
+
+void main() {
+  runApp(const MyApp());
+  runApp(
+    DevicePreview(enabled: !kReleaseMode, builder: (context) => const MyApp()),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'WMS CWallet',
+      useInheritedMediaQuery: true,
+      locale: DevicePreview.locale(context),
+      builder: DevicePreview.appBuilder,
+      theme: ThemeData(
+        primaryColor: kPrimaryColor,
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      home: const SplashScreen(), // Set SplashScreen as initial screen
+    );
+  }
+}

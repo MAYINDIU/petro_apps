@@ -1,0 +1,62 @@
+name: nli_apps
+description: "WmsCWallet"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.6.0
+  pdf: ^3.11.0
+  printing: ^5.10.3
+  device_preview: ^1.1.0
+  shared_preferences: ^2.1.1
+  google_fonts: ^6.1.0
+  intl: ^0.20.2
+  dropdown_search: ^5.0.3
+  flutter_spinkit: ^5.1.0
+  url_launcher: ^6.1.10
+  cupertino_icons: ^1.0.8
+  flutter_widget_from_html_core: ^0.17.0
+  easy_localization: ^3.0.0 # for .tr()
+  path_provider: ^2.0.0 # for PDF logic
+  open_file: ^3.0.0 # for PDF logic
+  flutter_html: ^3.0.0
+  webview_flutter:
+  image_picker: ^1.0.4 # For picking images/files from gallery/camera
+  flutter_inappwebview: ^6.1.5
+  youtube_player_flutter:
+  responsive_sizer: ^3.3.1
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  flutter_launcher_icons: "^0.13.1"
+  change_app_package_name:
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/nli.jpg"
+  # image_path: "assets/images/fav icon 1024x1024.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/ # All files in this directory are included
+    - assets/images/pdf/
+    - assets/images/1.jpg
+    - assets/images/2.jpg
+    - assets/icons/
+   
