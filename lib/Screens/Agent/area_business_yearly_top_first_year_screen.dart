@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:nli_apps/Screens/Agent/business_summary_screen.dart';
+import 'package:petro_app/Screens/Agent/business_summary_screen.dart';
 
 // --- Constants (re-used for consistency) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -15,7 +15,11 @@ const Color kTextColorDark = Color(0xFF1F2937);
 const String BASE_URL = 'https://nliapi.nextgenitltd.com/api';
 
 // Currency Formatter
-final _currencyFormatter = NumberFormat.currency(locale: 'en_IN', symbol: '', decimalDigits: 2);
+final _currencyFormatter = NumberFormat.currency(
+  locale: 'en_IN',
+  symbol: '',
+  decimalDigits: 2,
+);
 
 // Placeholder for UserData.token
 class AuthService {
@@ -46,10 +50,12 @@ class AreaBusinessTopFirstYearScreen extends StatefulWidget {
   const AreaBusinessTopFirstYearScreen({Key? key}) : super(key: key);
 
   @override
-  _AreaBusinessTopFirstYearScreenState createState() => _AreaBusinessTopFirstYearScreenState();
+  _AreaBusinessTopFirstYearScreenState createState() =>
+      _AreaBusinessTopFirstYearScreenState();
 }
 
-class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYearScreen> {
+class _AreaBusinessTopFirstYearScreenState
+    extends State<AreaBusinessTopFirstYearScreen> {
   List<AreaBusinessTopYearData> _currentYearItems = [];
   List<AreaBusinessTopYearData> _previousYearItems = [];
   double _totalCurrentFR = 0.0;
@@ -75,7 +81,10 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
     super.dispose();
   }
 
-  Future<void> getResponseFormApi({required String office_type, required String searchValue}) async {
+  Future<void> getResponseFormApi({
+    required String office_type,
+    required String searchValue,
+  }) async {
     setState(() {
       isLoading = true;
       _currentYearItems.clear();
@@ -98,12 +107,17 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
     }
 
     try {
-      final uri = Uri.parse("$BASE_URL/position-wise-area-business/?office_type=${office_type}");
-      final response = await http.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      });
+      final uri = Uri.parse(
+        "$BASE_URL/position-wise-area-business/?office_type=${office_type}",
+      );
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonResponse = jsonDecode(response.body);
@@ -111,7 +125,8 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
           List<dynamic> rawData = jsonResponse['branch'];
 
           var filteredData = rawData.where((element) {
-            final areaName = element["area_name"]?.toString().toLowerCase() ?? '';
+            final areaName =
+                element["area_name"]?.toString().toLowerCase() ?? '';
             return areaName.contains(this.searchValue.text.toLowerCase());
           }).toList();
 
@@ -122,13 +137,23 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
             final areaCode = entry['area_code']?.toString();
             if (areaCode == null) continue;
 
-            final premium = double.tryParse(entry['premium_paid']?.toString() ?? '0.0') ?? 0.0;
+            final premium =
+                double.tryParse(entry['premium_paid']?.toString() ?? '0.0') ??
+                0.0;
             final type = entry['type'];
             final yearCategory = entry['year_category'];
 
-            final targetMap = (yearCategory == 'CURRENT_YEAR') ? currentYearMap : previousYearMap;
+            final targetMap = (yearCategory == 'CURRENT_YEAR')
+                ? currentYearMap
+                : previousYearMap;
 
-            targetMap.putIfAbsent(areaCode, () => AreaBusinessTopYearData(areaCode: areaCode, areaName: entry['area_name'] ?? 'N/A'));
+            targetMap.putIfAbsent(
+              areaCode,
+              () => AreaBusinessTopYearData(
+                areaCode: areaCode,
+                areaName: entry['area_name'] ?? 'N/A',
+              ),
+            );
 
             if (type == 'FR') {
               targetMap[areaCode]!.fr += premium;
@@ -137,8 +162,10 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
             }
           }
 
-          _currentYearItems = currentYearMap.values.toList()..sort((a, b) => b.fr.compareTo(a.fr));
-          _previousYearItems = previousYearMap.values.toList()..sort((a, b) => b.fr.compareTo(a.fr));
+          _currentYearItems = currentYearMap.values.toList()
+            ..sort((a, b) => b.fr.compareTo(a.fr));
+          _previousYearItems = previousYearMap.values.toList()
+            ..sort((a, b) => b.fr.compareTo(a.fr));
 
           // Assign positions and calculate totals
           for (int i = 0; i < _currentYearItems.length; i++) {
@@ -152,11 +179,14 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
             _totalPreviousFR += _previousYearItems[i].fr;
             _totalPreviousRR += _previousYearItems[i].rr;
           }
-
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(jsonResponse['message'] ?? 'Failed to load data.')),
+              SnackBar(
+                content: Text(
+                  jsonResponse['message'] ?? 'Failed to load data.',
+                ),
+              ),
             );
           }
         }
@@ -169,9 +199,9 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Network error: $e')));
       }
     } finally {
       setState(() => isLoading = false);
@@ -180,7 +210,8 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(onWillPop: () async {
+    return WillPopScope(
+      onWillPop: () async {
         return true;
       },
       child: Scaffold(
@@ -194,21 +225,22 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
             iconSize: 20,
             onPressed: () {
               Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => BusinessSummaryScreen()));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BusinessSummaryScreen(),
+                ),
+              );
             },
           ),
           title: const Text(
             "Area Business Yearly (Top First year)",
-            style: TextStyle(
-              color: kTextColorLight,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: kTextColorLight, fontSize: 14),
           ),
         ),
         body: isLoading
-            ? const Center(child: CircularProgressIndicator(color: kPrimaryDarkBlue))
+            ? const Center(
+                child: CircularProgressIndicator(color: kPrimaryDarkBlue),
+              )
             : CustomScrollView(
                 slivers: [
                   SliverAppBar(
@@ -224,7 +256,8 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
@@ -234,9 +267,12 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                                 decoration: InputDecoration(
                                   labelText: 'Office Type',
                                   border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 value: dropdownvalue,
                                 items: Office.map((String items) {
@@ -249,32 +285,38 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                                   if (newValue != null) {
                                     setState(() => dropdownvalue = newValue);
                                     await getResponseFormApi(
-                                        office_type: newValue,
-                                        searchValue: searchValue.text);
+                                      office_type: newValue,
+                                      searchValue: searchValue.text,
+                                    );
                                   }
                                 },
                               ),
                               TextFormField(
                                 controller: searchValue,
                                 decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  hintText: "Search by area name",
+                                  labelText: 'Search',
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(
+                                      Icons.search,
+                                      color: kPrimaryDarkBlue,
                                     ),
-                                    hintText: "Search by area name",
-                                    labelText: 'Search',
-                                    suffixIcon: IconButton(
-                                      icon: const Icon(Icons.search,
-                                          color: kPrimaryDarkBlue),
-                                      onPressed: () async {
-                                        await getResponseFormApi(
-                                            office_type: dropdownvalue,
-                                            searchValue: searchValue.text);
-                                      },
-                                    )),
+                                    onPressed: () async {
+                                      await getResponseFormApi(
+                                        office_type: dropdownvalue,
+                                        searchValue: searchValue.text,
+                                      );
+                                    },
+                                  ),
+                                ),
                                 onFieldSubmitted: (value) async {
                                   await getResponseFormApi(
-                                      office_type: dropdownvalue,
-                                      searchValue: value);
+                                    office_type: dropdownvalue,
+                                    searchValue: value,
+                                  );
                                 },
                               ),
                               ToggleButtons(
@@ -290,11 +332,15 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                                 borderColor: kPrimaryDarkBlue,
                                 children: const [
                                   Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('CURRENT YEAR'),
                                   ),
                                   Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('PREVIOUS YEAR'),
                                   ),
                                 ],
@@ -319,8 +365,16 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                           _buildHeaderCell("Pos", width: 40),
                           _buildHeaderCell("Code", width: 70),
                           Expanded(child: _buildHeaderCell("Name")),
-                          _buildHeaderCell("First Yr", width: 90, isNumeric: true),
-                          _buildHeaderCell("Ren Yr", width: 90, isNumeric: true),
+                          _buildHeaderCell(
+                            "First Yr",
+                            width: 90,
+                            isNumeric: true,
+                          ),
+                          _buildHeaderCell(
+                            "Ren Yr",
+                            width: 90,
+                            isNumeric: true,
+                          ),
                         ],
                       ),
                     ),
@@ -328,22 +382,48 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (BuildContext context, int index) {
-                        final items = isCurrentYear ? _currentYearItems : _previousYearItems;
+                        final items = isCurrentYear
+                            ? _currentYearItems
+                            : _previousYearItems;
                         final item = items[index];
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Row(
                             children: [
-                              _buildDataCell(item.position.toString(), width: 40, isCenter: true),
-                              _buildDataCell(item.areaCode, width: 70, isBold: true, isCenter: true),
-                              Expanded(child: _buildDataCell(item.areaName, isCenter: true)),
-                              _buildDataCell(_currencyFormatter.format(item.fr), width: 90, isNumeric: true),
-                              _buildDataCell(_currencyFormatter.format(item.rr), width: 90, isNumeric: true),
+                              _buildDataCell(
+                                item.position.toString(),
+                                width: 40,
+                                isCenter: true,
+                              ),
+                              _buildDataCell(
+                                item.areaCode,
+                                width: 70,
+                                isBold: true,
+                                isCenter: true,
+                              ),
+                              Expanded(
+                                child: _buildDataCell(
+                                  item.areaName,
+                                  isCenter: true,
+                                ),
+                              ),
+                              _buildDataCell(
+                                _currencyFormatter.format(item.fr),
+                                width: 90,
+                                isNumeric: true,
+                              ),
+                              _buildDataCell(
+                                _currencyFormatter.format(item.rr),
+                                width: 90,
+                                isNumeric: true,
+                              ),
                             ],
                           ),
                         );
                       },
-                      childCount: isCurrentYear ? _currentYearItems.length : _previousYearItems.length,
+                      childCount: isCurrentYear
+                          ? _currentYearItems.length
+                          : _previousYearItems.length,
                     ),
                   ),
                   SliverToBoxAdapter(
@@ -353,7 +433,8 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                         elevation: 4,
                         color: const Color.fromARGB(255, 20, 57, 143),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           child: Row(
@@ -365,9 +446,10 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                                   child: Text(
                                     "Total",
                                     style: TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -376,12 +458,17 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                                 child: Center(
                                   child: Text(
                                     isCurrentYear
-                                        ? _currencyFormatter.format(_totalCurrentFR)
-                                        : _currencyFormatter.format(_totalPreviousFR),
+                                        ? _currencyFormatter.format(
+                                            _totalCurrentFR,
+                                          )
+                                        : _currencyFormatter.format(
+                                            _totalPreviousFR,
+                                          ),
                                     style: const TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -390,12 +477,17 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                                 child: Center(
                                   child: Text(
                                     isCurrentYear
-                                        ? _currencyFormatter.format(_totalCurrentRR)
-                                        : _currencyFormatter.format(_totalPreviousRR),
+                                        ? _currencyFormatter.format(
+                                            _totalCurrentRR,
+                                          )
+                                        : _currencyFormatter.format(
+                                            _totalPreviousRR,
+                                          ),
                                     style: const TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -404,14 +496,18 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
       ),
     );
   }
 
-  Widget _buildHeaderCell(String title, {double? width, bool isNumeric = false}) {
+  Widget _buildHeaderCell(
+    String title, {
+    double? width,
+    bool isNumeric = false,
+  }) {
     return Container(
       width: width,
       height: double.infinity,
@@ -419,12 +515,22 @@ class _AreaBusinessTopFirstYearScreenState extends State<AreaBusinessTopFirstYea
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Text(
         title,
-        style: const TextStyle(color: kTextColorLight, fontWeight: FontWeight.bold, fontSize: 12),
+        style: const TextStyle(
+          color: kTextColorLight,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
       ),
     );
   }
 
-  Widget _buildDataCell(String text, {double? width, bool isNumeric = false, bool isBold = false, bool isCenter = false}) {
+  Widget _buildDataCell(
+    String text, {
+    double? width,
+    bool isNumeric = false,
+    bool isBold = false,
+    bool isCenter = false,
+  }) {
     return Container(
       width: width,
       height: 48,

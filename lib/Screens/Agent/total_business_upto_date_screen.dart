@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:nli_apps/Screens/Agent/business_summary_screen.dart';
+import 'package:petro_app/Screens/Agent/business_summary_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // --- Constants (re-used for consistency) ---
@@ -15,8 +15,11 @@ const Color kTextColorDark = Color(0xFF1F2937);
 const String BASE_URL = 'https://nliapi.nextgenitltd.com/api';
 
 // Currency Formatter
-final _currencyFormatter =
-    NumberFormat.currency(locale: 'en_IN', symbol: '', decimalDigits: 2);
+final _currencyFormatter = NumberFormat.currency(
+  locale: 'en_IN',
+  symbol: '',
+  decimalDigits: 2,
+);
 
 // Placeholder for UserData.token
 class AuthService {
@@ -103,11 +106,14 @@ class _TotalBusinessUptodateScreenState
 
     try {
       final uri = Uri.parse("$BASE_URL/update-total-business/?type=${type}");
-      final response = await http.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      });
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonResponse = jsonDecode(response.body);
@@ -121,12 +127,14 @@ class _TotalBusinessUptodateScreenState
             if (project == null) continue;
 
             dataMap.putIfAbsent(
-                project, () => TotalBusinessYearlyData(project: project));
+              project,
+              () => TotalBusinessYearlyData(project: project),
+            );
 
             final item = dataMap[project]!;
             final premium =
                 double.tryParse(entry['premium_paid']?.toString() ?? '0.0') ??
-                    0.0;
+                0.0;
 
             if (entry['year_category'] == 'CURRENT_YEAR') {
               if (entry['type'] == 'FR') item.currentFR += premium;
@@ -151,8 +159,10 @@ class _TotalBusinessUptodateScreenState
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                  content:
-                      Text(jsonResponse['message'] ?? 'Failed to load data.')),
+                content: Text(
+                  jsonResponse['message'] ?? 'Failed to load data.',
+                ),
+              ),
             );
           }
         }
@@ -165,9 +175,9 @@ class _TotalBusinessUptodateScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Network error: $e')));
       }
     } finally {
       setState(() => isLoading = false);
@@ -196,15 +206,13 @@ class _TotalBusinessUptodateScreenState
           ),
           title: const Text(
             "Total Business Upto Date",
-            style: TextStyle(
-              color: kTextColorLight,
-              fontSize: 16,
-            ),
+            style: TextStyle(color: kTextColorLight, fontSize: 16),
           ),
         ),
         body: isLoading
             ? const Center(
-                child: CircularProgressIndicator(color: kPrimaryDarkBlue))
+                child: CircularProgressIndicator(color: kPrimaryDarkBlue),
+              )
             : CustomScrollView(
                 slivers: [
                   SliverAppBar(
@@ -220,7 +228,8 @@ class _TotalBusinessUptodateScreenState
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
@@ -230,9 +239,12 @@ class _TotalBusinessUptodateScreenState
                                 decoration: InputDecoration(
                                   labelText: 'Office Type',
                                   border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 value: dropdownvalue,
                                 items: Office.map((String items) {
@@ -267,13 +279,15 @@ class _TotalBusinessUptodateScreenState
                                 borderColor: kPrimaryDarkBlue,
                                 children: const [
                                   Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('CURRENT YEAR'),
                                   ),
                                   Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('PREVIOUS YEAR'),
                                   ),
                                 ],
@@ -296,15 +310,31 @@ class _TotalBusinessUptodateScreenState
                         Expanded(
                           child: Row(
                             children: [
-                              _buildHeaderCell("Project", width: 80, height: 60),
+                              _buildHeaderCell(
+                                "Project",
+                                width: 80,
+                                height: 60,
+                              ),
                               Expanded(
                                 child: Column(
                                   children: [
                                     _buildHeaderCell("Premium", height: 30),
                                     Row(
                                       children: [
-                                        Expanded(child: _buildHeaderCell("1st Year", height: 30, fontSize: 10)),
-                                        Expanded(child: _buildHeaderCell("Renewal", height: 30, fontSize: 10)),
+                                        Expanded(
+                                          child: _buildHeaderCell(
+                                            "1st Year",
+                                            height: 30,
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: _buildHeaderCell(
+                                            "Renewal",
+                                            height: 30,
+                                            fontSize: 10,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -313,11 +343,27 @@ class _TotalBusinessUptodateScreenState
                               Expanded(
                                 child: Column(
                                   children: [
-                                    _buildHeaderCell("Growth %", height: 30, fontSize: 10),
+                                    _buildHeaderCell(
+                                      "Growth %",
+                                      height: 30,
+                                      fontSize: 10,
+                                    ),
                                     Row(
                                       children: [
-                                        Expanded(child: _buildHeaderCell("1st Year", height: 30, fontSize: 10)),
-                                        Expanded(child: _buildHeaderCell("Renewal", height: 30, fontSize: 10)),
+                                        Expanded(
+                                          child: _buildHeaderCell(
+                                            "1st Year",
+                                            height: 30,
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: _buildHeaderCell(
+                                            "Renewal",
+                                            height: 30,
+                                            fontSize: 10,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -330,42 +376,60 @@ class _TotalBusinessUptodateScreenState
                     ),
                   ),
                   SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        final item = _businessData[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Row(
-                            children: [
-                              _buildDataCell(item.project, width: 80, isBold: true),
-                              Expanded(
-                                child: _buildDataCell(
-                                    _currencyFormatter.format(isCurrentYear ? item.currentFR : item.previousFR),
-                                    isNumeric: true),
-                              ),
-                              Expanded(
-                                child: _buildDataCell(
-                                    _currencyFormatter.format(isCurrentYear ? item.currentRR : item.previousRR),
-                                    isNumeric: true),
-                              ),
-                              Expanded(
-                                child: _buildDataCell(
-                                  isCurrentYear ? '${item.frGrowth.toStringAsFixed(0)}%' : '0%',
-                                  isNumeric: true,
+                    delegate: SliverChildBuilderDelegate((
+                      BuildContext context,
+                      int index,
+                    ) {
+                      final item = _businessData[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          children: [
+                            _buildDataCell(
+                              item.project,
+                              width: 80,
+                              isBold: true,
+                            ),
+                            Expanded(
+                              child: _buildDataCell(
+                                _currencyFormatter.format(
+                                  isCurrentYear
+                                      ? item.currentFR
+                                      : item.previousFR,
                                 ),
+                                isNumeric: true,
                               ),
-                              Expanded(
-                                child: _buildDataCell(
-                                  isCurrentYear ? '${item.rrGrowth.toStringAsFixed(0)}%' : '0%',
-                                  isNumeric: true,
+                            ),
+                            Expanded(
+                              child: _buildDataCell(
+                                _currencyFormatter.format(
+                                  isCurrentYear
+                                      ? item.currentRR
+                                      : item.previousRR,
                                 ),
+                                isNumeric: true,
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                      childCount: _businessData.length,
-                    ),
+                            ),
+                            Expanded(
+                              child: _buildDataCell(
+                                isCurrentYear
+                                    ? '${item.frGrowth.toStringAsFixed(0)}%'
+                                    : '0%',
+                                isNumeric: true,
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildDataCell(
+                                isCurrentYear
+                                    ? '${item.rrGrowth.toStringAsFixed(0)}%'
+                                    : '0%',
+                                isNumeric: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }, childCount: _businessData.length),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -374,10 +438,13 @@ class _TotalBusinessUptodateScreenState
                         elevation: 4,
                         color: const Color.fromRGBO(24, 200, 45, .8),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 16.0, horizontal: 8.0),
+                            vertical: 16.0,
+                            horizontal: 8.0,
+                          ),
                           child: Row(
                             children: [
                               Container(
@@ -386,53 +453,65 @@ class _TotalBusinessUptodateScreenState
                                 child: const Text(
                                   "Total",
                                   style: TextStyle(
-                                      color: kTextColorLight,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold),
+                                    color: kTextColorLight,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               Expanded(
-                                child: _buildTotalCell(isCurrentYear
-                                    ? _totalCurrentFR
-                                    : _totalPreviousFR),
-                              ),
-                              Expanded(
-                                child: _buildTotalCell(isCurrentYear
-                                    ? _totalCurrentRR
-                                    : _totalPreviousRR),
+                                child: _buildTotalCell(
+                                  isCurrentYear
+                                      ? _totalCurrentFR
+                                      : _totalPreviousFR,
+                                ),
                               ),
                               Expanded(
                                 child: _buildTotalCell(
-                                    isCurrentYear
-                                        ? ((_totalCurrentFR - _totalPreviousFR) /
+                                  isCurrentYear
+                                      ? _totalCurrentRR
+                                      : _totalPreviousRR,
+                                ),
+                              ),
+                              Expanded(
+                                child: _buildTotalCell(
+                                  isCurrentYear
+                                      ? ((_totalCurrentFR - _totalPreviousFR) /
                                                 _totalPreviousFR) *
                                             100
-                                        : 0,
-                                    isPercentage: true),
+                                      : 0,
+                                  isPercentage: true,
+                                ),
                               ),
                               Expanded(
                                 child: _buildTotalCell(
-                                    isCurrentYear
-                                        ? ((_totalCurrentRR - _totalPreviousRR) /
+                                  isCurrentYear
+                                      ? ((_totalCurrentRR - _totalPreviousRR) /
                                                 _totalPreviousRR) *
                                             100
-                                        : 0,
-                                    isPercentage: true),
+                                      : 0,
+                                  isPercentage: true,
+                                ),
                               ),
                             ],
                           ),
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
       ),
     );
   }
 
-  Widget _buildHeaderCell(String title,
-      {double? width, double? height, bool isNumeric = false, double fontSize = 12}) {
+  Widget _buildHeaderCell(
+    String title, {
+    double? width,
+    double? height,
+    bool isNumeric = false,
+    double fontSize = 12,
+  }) {
     return Container(
       width: width,
       height: height,
@@ -444,18 +523,21 @@ class _TotalBusinessUptodateScreenState
       child: Text(
         title,
         style: TextStyle(
-            color: kTextColorLight,
-            fontWeight: FontWeight.bold,
-            fontSize: fontSize),
+          color: kTextColorLight,
+          fontWeight: FontWeight.bold,
+          fontSize: fontSize,
+        ),
       ),
     );
   }
 
-  Widget _buildDataCell(String text,
-      {double? width,
-      bool isNumeric = false,
-      bool isBold = false,
-      bool isCenter = false}) {
+  Widget _buildDataCell(
+    String text, {
+    double? width,
+    bool isNumeric = false,
+    bool isBold = false,
+    bool isCenter = false,
+  }) {
     return Container(
       width: width,
       height: 48,
@@ -496,7 +578,10 @@ class _TotalBusinessUptodateScreenState
       child: Text(
         text,
         style: const TextStyle(
-            color: kTextColorLight, fontSize: 12, fontWeight: FontWeight.bold),
+          color: kTextColorLight,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

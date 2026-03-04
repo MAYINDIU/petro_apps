@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:device_preview/device_preview.dart';
-import 'package:nli_apps/Screens/splash_screen.dart';
+import 'package:petro_app/Screens/splash_screen.dart';
 
 // Define color constants
 const kPrimaryColor = Color.fromARGB(255, 11, 97, 236);

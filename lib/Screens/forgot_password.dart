@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nli_apps/Screens/login.dart'; // Reusing styles and ApiService
+import 'package:petro_app/Screens/login.dart'; // Reusing styles and ApiService
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -50,16 +50,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      if (_currentStep == 0) { // Request OTP
-        final response = await _apiService.requestPasswordResetOtp(_phoneController.text);
+      if (_currentStep == 0) {
+        // Request OTP
+        final response = await _apiService.requestPasswordResetOtp(
+          _phoneController.text,
+        );
         if (response['success'] == true) {
-          _showSnackbar(response['message'] ?? 'OTP sent successfully.', isError: false);
+          _showSnackbar(
+            response['message'] ?? 'OTP sent successfully.',
+            isError: false,
+          );
           setState(() => _currentStep = 1);
         } else {
           _showSnackbar(response['message'] ?? 'Failed to request OTP.');
         }
-      } else if (_currentStep == 1) { // Verify OTP
-        final response = await _apiService.verifyPasswordResetOtp(_phoneController.text, _otpController.text);
+      } else if (_currentStep == 1) {
+        // Verify OTP
+        final response = await _apiService.verifyPasswordResetOtp(
+          _phoneController.text,
+          _otpController.text,
+        );
         final data = response['data'] as Map<String, dynamic>?;
         final accessToken = data?['accessToken'] as String?;
         if (response['success'] == true && accessToken != null) {
@@ -69,17 +79,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             _currentStep = 2;
           });
         } else {
-          _showSnackbar(response['message'] ?? 'Invalid OTP or verification failed.');
+          _showSnackbar(
+            response['message'] ?? 'Invalid OTP or verification failed.',
+          );
         }
-      } else if (_currentStep == 2) { // Update Password
+      } else if (_currentStep == 2) {
+        // Update Password
         if (_resetToken == null) {
           _showSnackbar('Reset token is missing. Please start over.');
           setState(() => _currentStep = 0);
           return;
         }
-        final response = await _apiService.updatePassword(_resetToken!, _passwordController.text);
+        final response = await _apiService.updatePassword(
+          _resetToken!,
+          _passwordController.text,
+        );
         if (response['success'] == true) {
-          _showSnackbar('Password has been reset successfully!', isError: false);
+          _showSnackbar(
+            'Password has been reset successfully!',
+            isError: false,
+          );
           await Future.delayed(const Duration(seconds: 2));
           if (mounted) Navigator.of(context).pop(); // Go back to login page
         } else {
@@ -98,7 +117,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       case 1: // OTP Step
         return Column(
           children: [
-            Text('An OTP has been sent to ${_phoneController.text}. Please enter it below.', textAlign: TextAlign.center),
+            Text(
+              'An OTP has been sent to ${_phoneController.text}. Please enter it below.',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 20),
             _buildCustomTextField(
               controller: _otpController,
@@ -106,7 +128,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               hint: "Enter 4-digit OTP",
               icon: Icons.sms_outlined,
               keyboardType: TextInputType.number,
-              validator: (val) => val == null || val.length != 4 ? "Enter a valid 4-digit OTP" : null,
+              validator: (val) => val == null || val.length != 4
+                  ? "Enter a valid 4-digit OTP"
+                  : null,
             ),
           ],
         );
@@ -120,10 +144,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               icon: Icons.lock_outline,
               obscureText: _obscurePassword,
               suffixIcon: IconButton(
-                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: kHintColor),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: kHintColor,
+                ),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
-              validator: (val) => val == null || val.length < 6 ? "Password must be 6+ characters" : null,
+              validator: (val) => val == null || val.length < 6
+                  ? "Password must be 6+ characters"
+                  : null,
             ),
             const SizedBox(height: 15),
             _buildCustomTextField(
@@ -133,10 +163,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               icon: Icons.lock_reset,
               obscureText: _obscureConfirmPassword,
               suffixIcon: IconButton(
-                icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility, color: kHintColor),
-                onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                icon: Icon(
+                  _obscureConfirmPassword
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                  color: kHintColor,
+                ),
+                onPressed: () => setState(
+                  () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                ),
               ),
-              validator: (val) => val != _passwordController.text ? "Passwords do not match" : null,
+              validator: (val) => val != _passwordController.text
+                  ? "Passwords do not match"
+                  : null,
             ),
           ],
         );
@@ -148,24 +187,32 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           hint: "e.g., 01774881746",
           icon: Icons.phone_android,
           keyboardType: TextInputType.phone,
-          validator: (val) => val == null || val.length < 11 ? "Enter a valid phone number" : null,
+          validator: (val) => val == null || val.length < 11
+              ? "Enter a valid phone number"
+              : null,
         );
     }
   }
 
   String _getButtonText() {
     switch (_currentStep) {
-      case 1: return 'VERIFY OTP';
-      case 2: return 'UPDATE PASSWORD';
-      default: return 'REQUEST OTP';
+      case 1:
+        return 'VERIFY OTP';
+      case 2:
+        return 'UPDATE PASSWORD';
+      default:
+        return 'REQUEST OTP';
     }
   }
 
   String _getHeaderText() {
     switch (_currentStep) {
-      case 1: return 'Verify Your Phone';
-      case 2: return 'Set New Password';
-      default: return 'Reset Your Password';
+      case 1:
+        return 'Verify Your Phone';
+      case 2:
+        return 'Set New Password';
+      default:
+        return 'Reset Your Password';
     }
   }
 
@@ -199,11 +246,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.lock_reset, size: 60, color: kPrimaryDarkBlue.withOpacity(0.8)),
+                  Icon(
+                    Icons.lock_reset,
+                    size: 60,
+                    color: kPrimaryDarkBlue.withOpacity(0.8),
+                  ),
                   const SizedBox(height: 15),
                   Text(
                     _getHeaderText(),
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: kTextColorDark),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: kTextColorDark,
+                    ),
                   ),
                   const SizedBox(height: 25),
                   _buildStepContent(),
@@ -215,10 +270,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   if (_currentStep > 0)
                     TextButton(
-                      onPressed: _isLoading ? null : () => setState(() => _currentStep = 0),
+                      onPressed: _isLoading
+                          ? null
+                          : () => setState(() => _currentStep = 0),
                       child: const Text(
                         "Start Over",
-                        style: TextStyle(color: kAccentBlue, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          color: kAccentBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                 ],
@@ -279,9 +339,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ? const SizedBox(
                 height: 24,
                 width: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
               )
-            : Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            : Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }

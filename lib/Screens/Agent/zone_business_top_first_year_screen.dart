@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:nli_apps/Screens/Agent/business_summary_screen.dart';
+import 'package:petro_app/Screens/Agent/business_summary_screen.dart';
 
 // --- Constants (re-used for consistency) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -17,7 +17,11 @@ const Color kTextColorDark = Color(0xFF1F2937);
 const String BASE_URL = 'https://nliapi.nextgenitltd.com/api';
 
 // Currency Formatter
-final _currencyFormatter = NumberFormat.currency(locale: 'en_IN', symbol: '', decimalDigits: 2);
+final _currencyFormatter = NumberFormat.currency(
+  locale: 'en_IN',
+  symbol: '',
+  decimalDigits: 2,
+);
 
 // Placeholder for UserData.token (assuming it's fetched from SharedPreferences)
 class AuthService {
@@ -62,10 +66,12 @@ class ZoneBusinessTopFirstYearScreen extends StatefulWidget {
   const ZoneBusinessTopFirstYearScreen({Key? key}) : super(key: key);
 
   @override
-  _ZoneBusinessTopFirstYearScreenState createState() => _ZoneBusinessTopFirstYearScreenState();
+  _ZoneBusinessTopFirstYearScreenState createState() =>
+      _ZoneBusinessTopFirstYearScreenState();
 }
 
-class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYearScreen> {
+class _ZoneBusinessTopFirstYearScreenState
+    extends State<ZoneBusinessTopFirstYearScreen> {
   List<ZoneBusinessItem> _currentYearItems = [];
   List<ZoneBusinessItem> _previousYearItems = [];
   double _totalCurrentFR = 0.0;
@@ -78,8 +84,10 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
   List<String> Office = ["AKOK OFFICE", "JANA OFFICE"];
   TextEditingController searchValue = TextEditingController();
 
-  Future<void> getResponseFormApi(
-      {required String office_type, required String searchValue}) async {
+  Future<void> getResponseFormApi({
+    required String office_type,
+    required String searchValue,
+  }) async {
     setState(() {
       isLoading = true;
       _currentYearItems.clear();
@@ -94,7 +102,11 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
     if (token == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Authentication token not found. Please log in again.')),
+          const SnackBar(
+            content: Text(
+              'Authentication token not found. Please log in again.',
+            ),
+          ),
         );
       }
       setState(() {
@@ -105,7 +117,8 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
 
     try {
       final uri = Uri.parse(
-          "$BASE_URL/position-wise-zone-business/?office_type=${office_type}");
+        "$BASE_URL/position-wise-zone-business/?office_type=${office_type}",
+      );
       final response = await http.get(
         uri,
         headers: <String, String>{
@@ -119,12 +132,13 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse['success'] == true && jsonResponse['branch'] is List) {
           List<dynamic> rawData = jsonResponse['branch'];
-          
+
           Map<String, ZoneBusinessItem> currentYearMap = {};
           Map<String, ZoneBusinessItem> previousYearMap = {};
 
           var filteredData = rawData.where((element) {
-            final zoneName = element["zone_name"]?.toString().toLowerCase() ?? '';
+            final zoneName =
+                element["zone_name"]?.toString().toLowerCase() ?? '';
             return zoneName.contains(searchValue.toLowerCase());
           }).toList();
 
@@ -134,12 +148,22 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
 
             final yearCategory = entry['year_category'];
             final type = entry['type'];
-            final premium = double.tryParse(entry['premium_paid']?.toString() ?? '0.0') ?? 0.0;
+            final premium =
+                double.tryParse(entry['premium_paid']?.toString() ?? '0.0') ??
+                0.0;
 
-            final targetMap = (yearCategory == 'CURRENT_YEAR') ? currentYearMap : previousYearMap;
+            final targetMap = (yearCategory == 'CURRENT_YEAR')
+                ? currentYearMap
+                : previousYearMap;
 
-            targetMap.putIfAbsent(zoneCode, () => ZoneBusinessItem(zoneCode: zoneCode, zoneName: entry['zone_name'] ?? 'N/A'));
-            
+            targetMap.putIfAbsent(
+              zoneCode,
+              () => ZoneBusinessItem(
+                zoneCode: zoneCode,
+                zoneName: entry['zone_name'] ?? 'N/A',
+              ),
+            );
+
             if (type == 'FR') {
               targetMap[zoneCode]!.fr += premium;
             } else if (type == 'RR') {
@@ -147,8 +171,10 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
             }
           }
 
-          _currentYearItems = currentYearMap.values.toList()..sort((a, b) => b.fr.compareTo(a.fr));
-          _previousYearItems = previousYearMap.values.toList()..sort((a, b) => b.fr.compareTo(a.fr));
+          _currentYearItems = currentYearMap.values.toList()
+            ..sort((a, b) => b.fr.compareTo(a.fr));
+          _previousYearItems = previousYearMap.values.toList()
+            ..sort((a, b) => b.fr.compareTo(a.fr));
 
           // Assign positions and calculate totals
           for (int i = 0; i < _currentYearItems.length; i++) {
@@ -166,8 +192,10 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                  content:
-                      Text(jsonResponse['message'] ?? 'Failed to load data.')),
+                content: Text(
+                  jsonResponse['message'] ?? 'Failed to load data.',
+                ),
+              ),
             );
           }
         }
@@ -180,9 +208,9 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Network error: $e')));
       }
     } finally {
       setState(() {
@@ -207,7 +235,8 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(onWillPop: () async {
+    return WillPopScope(
+      onWillPop: () async {
         return true;
       },
       child: Scaffold(
@@ -221,24 +250,21 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
             iconSize: 20,
             onPressed: () {
               Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => BusinessSummaryScreen()));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BusinessSummaryScreen(),
+                ),
+              );
             },
           ),
           title: Text(
             "Zone Business Yearly (Top First year)",
-            style: const TextStyle(
-              color: kTextColorLight,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: kTextColorLight, fontSize: 14),
           ),
         ),
         body: isLoading
             ? Center(
-                child: const CircularProgressIndicator(
-                  color: kPrimaryDarkBlue,
-                ),
+                child: const CircularProgressIndicator(color: kPrimaryDarkBlue),
               )
             : CustomScrollView(
                 slivers: [
@@ -255,7 +281,8 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
@@ -265,9 +292,12 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                                 decoration: InputDecoration(
                                   labelText: 'Office Type',
                                   border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 value: dropdownvalue,
                                 items: Office.map((String items) {
@@ -282,32 +312,38 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                                       dropdownvalue = newValue;
                                     });
                                     await getResponseFormApi(
-                                        office_type: newValue,
-                                        searchValue: searchValue.text);
+                                      office_type: newValue,
+                                      searchValue: searchValue.text,
+                                    );
                                   }
                                 },
                               ),
                               TextFormField(
                                 controller: searchValue,
                                 decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  hintText: "Search by zone name",
+                                  labelText: 'Search',
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(
+                                      Icons.search,
+                                      color: kPrimaryDarkBlue,
                                     ),
-                                    hintText: "Search by zone name",
-                                    labelText: 'Search',
-                                    suffixIcon: IconButton(
-                                      icon: const Icon(Icons.search,
-                                          color: kPrimaryDarkBlue),
-                                      onPressed: () async {
-                                        await getResponseFormApi(
-                                            office_type: dropdownvalue,
-                                            searchValue: searchValue.text);
-                                      },
-                                    )),
+                                    onPressed: () async {
+                                      await getResponseFormApi(
+                                        office_type: dropdownvalue,
+                                        searchValue: searchValue.text,
+                                      );
+                                    },
+                                  ),
+                                ),
                                 onFieldSubmitted: (value) async {
                                   await getResponseFormApi(
-                                      office_type: dropdownvalue,
-                                      searchValue: value);
+                                    office_type: dropdownvalue,
+                                    searchValue: value,
+                                  );
                                 },
                               ),
                               ToggleButtons(
@@ -326,15 +362,15 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                                 children: const [
                                   Padding(
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: 16.0),
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('CURRENT YEAR'),
                                   ),
 
-
-                                  
                                   Padding(
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: 16.0),
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('PREVIOUS YEAR'),
                                   ),
                                 ],
@@ -373,22 +409,47 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (BuildContext context, int index) {
-                        final items = isCurrentYear ? _currentYearItems : _previousYearItems;
+                        final items = isCurrentYear
+                            ? _currentYearItems
+                            : _previousYearItems;
                         final item = items[index];
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Row(
                             children: [
-                              _buildDataCell(item.position.toString(), width: 40, isCenter: true),
-                              _buildDataCell(item.zoneCode, width: 70, isBold: true),
-                              Expanded(child: _buildDataCell(item.zoneName, isCenter: true)),
-                              _buildDataCell(_currencyFormatter.format(item.fr), width: 90, isNumeric: true),
-                              _buildDataCell(_currencyFormatter.format(item.rr), width: 90, isNumeric: true),
+                              _buildDataCell(
+                                item.position.toString(),
+                                width: 40,
+                                isCenter: true,
+                              ),
+                              _buildDataCell(
+                                item.zoneCode,
+                                width: 70,
+                                isBold: true,
+                              ),
+                              Expanded(
+                                child: _buildDataCell(
+                                  item.zoneName,
+                                  isCenter: true,
+                                ),
+                              ),
+                              _buildDataCell(
+                                _currencyFormatter.format(item.fr),
+                                width: 90,
+                                isNumeric: true,
+                              ),
+                              _buildDataCell(
+                                _currencyFormatter.format(item.rr),
+                                width: 90,
+                                isNumeric: true,
+                              ),
                             ],
                           ),
                         );
                       },
-                      childCount: isCurrentYear ? _currentYearItems.length : _previousYearItems.length,
+                      childCount: isCurrentYear
+                          ? _currentYearItems.length
+                          : _previousYearItems.length,
                     ),
                   ),
                   SliverToBoxAdapter(
@@ -398,7 +459,8 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                         elevation: 4,
                         color: const Color.fromARGB(255, 20, 57, 143),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           child: Row(
@@ -410,9 +472,10 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                                   child: Text(
                                     "Total",
                                     style: TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -421,12 +484,17 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                                 child: Center(
                                   child: Text(
                                     isCurrentYear
-                                        ? _currencyFormatter.format(_totalCurrentFR)
-                                        : _currencyFormatter.format(_totalPreviousFR),
+                                        ? _currencyFormatter.format(
+                                            _totalCurrentFR,
+                                          )
+                                        : _currencyFormatter.format(
+                                            _totalPreviousFR,
+                                          ),
                                     style: const TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -435,12 +503,17 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                                 child: Center(
                                   child: Text(
                                     isCurrentYear
-                                        ? _currencyFormatter.format(_totalCurrentRR)
-                                        : _currencyFormatter.format(_totalPreviousRR),
+                                        ? _currencyFormatter.format(
+                                            _totalCurrentRR,
+                                          )
+                                        : _currencyFormatter.format(
+                                            _totalPreviousRR,
+                                          ),
                                     style: const TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -449,14 +522,18 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
       ),
     );
   }
 
-  Widget _buildHeaderCell(String title, {double? width, bool isNumeric = false}) {
+  Widget _buildHeaderCell(
+    String title, {
+    double? width,
+    bool isNumeric = false,
+  }) {
     return Container(
       width: width,
       height: double.infinity,
@@ -464,12 +541,22 @@ class _ZoneBusinessTopFirstYearScreenState extends State<ZoneBusinessTopFirstYea
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Text(
         title,
-        style: const TextStyle(color: kTextColorLight, fontWeight: FontWeight.bold, fontSize: 12),
+        style: const TextStyle(
+          color: kTextColorLight,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
       ),
     );
   }
 
-  Widget _buildDataCell(String text, {double? width, bool isNumeric = false, bool isBold = false, bool isCenter = false}) {
+  Widget _buildDataCell(
+    String text, {
+    double? width,
+    bool isNumeric = false,
+    bool isBold = false,
+    bool isCenter = false,
+  }) {
     return Container(
       width: width,
       height: 48, // Set a fixed height for rows

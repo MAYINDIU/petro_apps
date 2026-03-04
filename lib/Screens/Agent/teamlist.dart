@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:nli_apps/Screens/Agent/business_performance_page.dart';
-import 'package:nli_apps/Screens/login.dart';
+import 'package:petro_app/Screens/Agent/business_performance_page.dart';
+import 'package:petro_app/Screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -31,7 +31,9 @@ class TeamEntity {
     return TeamEntity(
       id: json['emp_id']?.toString() ?? json['id']?.toString() ?? 'N/A',
       // Trim whitespace from names which might have trailing spaces
-      name: (json['emp_name'] as String? ?? json['name'] as String? ?? 'Unknown').trim(),
+      name:
+          (json['emp_name'] as String? ?? json['name'] as String? ?? 'Unknown')
+              .trim(),
       mobile: json['mobile'] as String?,
       designation: json['designation'] as String? ?? 'N/A',
     );
@@ -47,7 +49,14 @@ class TeamCounts {
   final String branch;
   final String zone;
 
-  TeamCounts({required this.fa, required this.um, required this.bm, required this.dc, required this.branch, required this.zone});
+  TeamCounts({
+    required this.fa,
+    required this.um,
+    required this.bm,
+    required this.dc,
+    required this.branch,
+    required this.zone,
+  });
 
   factory TeamCounts.fromJson(Map<String, dynamic> json) {
     return TeamCounts(
@@ -142,10 +151,15 @@ class TeamApiService {
         if (jsonResponse['success'] == true) {
           return TeamApiResponse.fromJson(jsonResponse);
         } else {
-          throw Exception(jsonResponse['message'] ?? 'API returned failure but no error message.');
+          throw Exception(
+            jsonResponse['message'] ??
+                'API returned failure but no error message.',
+          );
         }
       } else {
-        throw Exception('Failed to load team data. Status code: ${response.statusCode}');
+        throw Exception(
+          'Failed to load team data. Status code: ${response.statusCode}',
+        );
       }
     } catch (e) {
       // Re-throw the exception to be handled by the FutureBuilder
@@ -217,19 +231,23 @@ class _TeamListPageState extends State<TeamListPage> {
 
     // Filter each list based on the query
     final filteredFaList = _allTeamData!.faList.where((entity) {
-      return entity.name.toLowerCase().contains(query) || entity.id.contains(query);
+      return entity.name.toLowerCase().contains(query) ||
+          entity.id.contains(query);
     }).toList();
 
     final filteredUmList = _allTeamData!.umList.where((entity) {
-      return entity.name.toLowerCase().contains(query) || entity.id.contains(query);
+      return entity.name.toLowerCase().contains(query) ||
+          entity.id.contains(query);
     }).toList();
 
     final filteredBmList = _allTeamData!.bmList.where((entity) {
-      return entity.name.toLowerCase().contains(query) || entity.id.contains(query);
+      return entity.name.toLowerCase().contains(query) ||
+          entity.id.contains(query);
     }).toList();
 
     final filteredDcList = _allTeamData!.dcList.where((entity) {
-      return entity.name.toLowerCase().contains(query) || entity.id.contains(query);
+      return entity.name.toLowerCase().contains(query) ||
+          entity.id.contains(query);
     }).toList();
 
     setState(() {
@@ -242,7 +260,8 @@ class _TeamListPageState extends State<TeamListPage> {
         umList: filteredUmList,
         bmList: filteredBmList,
         dcList: filteredDcList,
-        branchList: _allTeamData!.branchList, // Branch/Zone lists are not filtered
+        branchList:
+            _allTeamData!.branchList, // Branch/Zone lists are not filtered
         zoneList: _allTeamData!.zoneList,
       );
     });
@@ -264,8 +283,11 @@ class _TeamListPageState extends State<TeamListPage> {
           future: _teamDataFuture,
           builder: (context, snapshot) {
             // Loading State
-            if (snapshot.connectionState == ConnectionState.waiting && _allTeamData == null) {
-              return const Center(child: CircularProgressIndicator(color: kPrimaryDarkBlue));
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                _allTeamData == null) {
+              return const Center(
+                child: CircularProgressIndicator(color: kPrimaryDarkBlue),
+              );
             }
 
             // Error State
@@ -286,12 +308,20 @@ class _TeamListPageState extends State<TeamListPage> {
             if (_filteredTeamData != null) {
               final data = _filteredTeamData!;
               final bool isSearching = _searchController.text.isNotEmpty;
-              final bool noResults = data.faList.isEmpty && data.umList.isEmpty && data.bmList.isEmpty && data.dcList.isEmpty && data.branchList.isEmpty && data.zoneList.isEmpty;
+              final bool noResults =
+                  data.faList.isEmpty &&
+                  data.umList.isEmpty &&
+                  data.bmList.isEmpty &&
+                  data.dcList.isEmpty &&
+                  data.branchList.isEmpty &&
+                  data.zoneList.isEmpty;
 
               return CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(child: _buildHeaderCard(data)),
-                  SliverToBoxAdapter(child: _buildTeamCountSummary(data.counts)),
+                  SliverToBoxAdapter(
+                    child: _buildTeamCountSummary(data.counts),
+                  ),
                   SliverToBoxAdapter(child: _buildSearchBar()),
                   if (isSearching && noResults)
                     const SliverFillRemaining(
@@ -305,12 +335,44 @@ class _TeamListPageState extends State<TeamListPage> {
                   else
                     SliverList(
                       delegate: SliverChildListDelegate([
-                        _buildTeamExpansionTile('Financial Associates (FA)', data.faList, data.counts.fa, isSearching: isSearching),
-                        _buildTeamExpansionTile('Unit Managers (UM)', data.umList, data.counts.um, isSearching: isSearching),
-                        _buildTeamExpansionTile('Branch Managers (BM)', data.bmList, data.counts.bm, isSearching: isSearching),
-                        _buildTeamExpansionTile('Development Chiefs (DC)', data.dcList, data.counts.dc, isSearching: isSearching),
-                        _buildTeamExpansionTile('Branches', data.branchList, data.counts.branch, isSearching: isSearching, icon: Icons.store_mall_directory),
-                        _buildTeamExpansionTile('Zones', data.zoneList, data.counts.zone, isSearching: isSearching, icon: Icons.travel_explore),
+                        _buildTeamExpansionTile(
+                          'Financial Associates (FA)',
+                          data.faList,
+                          data.counts.fa,
+                          isSearching: isSearching,
+                        ),
+                        _buildTeamExpansionTile(
+                          'Unit Managers (UM)',
+                          data.umList,
+                          data.counts.um,
+                          isSearching: isSearching,
+                        ),
+                        _buildTeamExpansionTile(
+                          'Branch Managers (BM)',
+                          data.bmList,
+                          data.counts.bm,
+                          isSearching: isSearching,
+                        ),
+                        _buildTeamExpansionTile(
+                          'Development Chiefs (DC)',
+                          data.dcList,
+                          data.counts.dc,
+                          isSearching: isSearching,
+                        ),
+                        _buildTeamExpansionTile(
+                          'Branches',
+                          data.branchList,
+                          data.counts.branch,
+                          isSearching: isSearching,
+                          icon: Icons.store_mall_directory,
+                        ),
+                        _buildTeamExpansionTile(
+                          'Zones',
+                          data.zoneList,
+                          data.counts.zone,
+                          isSearching: isSearching,
+                          icon: Icons.travel_explore,
+                        ),
                       ]),
                     ),
                 ],
@@ -339,18 +401,29 @@ class _TeamListPageState extends State<TeamListPage> {
           children: [
             Text(
               data.name,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: kPrimaryDarkBlue),
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: kPrimaryDarkBlue,
+              ),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.badge_outlined, size: 16, color: kTextColorDark),
+                const Icon(
+                  Icons.badge_outlined,
+                  size: 16,
+                  color: kTextColorDark,
+                ),
                 const SizedBox(width: 8),
                 Text('ID: ${data.id}', style: const TextStyle(fontSize: 16)),
                 const SizedBox(width: 16),
                 const Icon(Icons.star_border, size: 16, color: kTextColorDark),
                 const SizedBox(width: 8),
-                Text('Role: ${data.designations}', style: const TextStyle(fontSize: 16)),
+                Text(
+                  'Role: ${data.designations}',
+                  style: const TextStyle(fontSize: 16),
+                ),
               ],
             ),
           ],
@@ -364,14 +437,33 @@ class _TeamListPageState extends State<TeamListPage> {
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Row(
         children: [
-          Expanded(child: _buildCountCard('Branches', counts.branch, Icons.store_mall_directory_outlined, Colors.orange)),
-          Expanded(child: _buildCountCard('Zones', counts.zone, Icons.travel_explore_outlined, Colors.purple)),
+          Expanded(
+            child: _buildCountCard(
+              'Branches',
+              counts.branch,
+              Icons.store_mall_directory_outlined,
+              Colors.orange,
+            ),
+          ),
+          Expanded(
+            child: _buildCountCard(
+              'Zones',
+              counts.zone,
+              Icons.travel_explore_outlined,
+              Colors.purple,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCountCard(String title, String count, IconData icon, Color color) {
+  Widget _buildCountCard(
+    String title,
+    String count,
+    IconData icon,
+    Color color,
+  ) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -384,8 +476,18 @@ class _TeamListPageState extends State<TeamListPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                Text(count, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kTextColorDark)),
+                Text(
+                  title,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                ),
+                Text(
+                  count,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: kTextColorDark,
+                  ),
+                ),
               ],
             ),
           ],
@@ -393,7 +495,6 @@ class _TeamListPageState extends State<TeamListPage> {
       ),
     );
   }
-
 
   Widget _buildSearchBar() {
     return Padding(
@@ -417,14 +518,23 @@ class _TeamListPageState extends State<TeamListPage> {
             borderRadius: BorderRadius.circular(30.0),
             borderSide: BorderSide.none,
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 20,
+          ),
         ),
       ),
     );
   }
 
   // Widget for the expandable list of team members
-  Widget _buildTeamExpansionTile(String title, List<TeamEntity> members, String count, {bool isSearching = false, IconData icon = Icons.people_outline}) {
+  Widget _buildTeamExpansionTile(
+    String title,
+    List<TeamEntity> members,
+    String count, {
+    bool isSearching = false,
+    IconData icon = Icons.people_outline,
+  }) {
     if (members.isEmpty) {
       // If there are no members, don't show the expansion tile.
       return const SizedBox.shrink();
@@ -450,7 +560,10 @@ class _TeamListPageState extends State<TeamListPage> {
           ),
           child: Text(
             count,
-            style: const TextStyle(fontWeight: FontWeight.bold, color: kPrimaryDarkBlue),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: kPrimaryDarkBlue,
+            ),
           ),
         ),
         // Leading icon
@@ -469,16 +582,24 @@ class _TeamListPageState extends State<TeamListPage> {
       color: Colors.white,
       margin: const EdgeInsets.only(top: 2),
       child: ListTile(
-        onTap: isPerson ? () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => BusinessPerformancePage(
-              empId: member.id, 
-              designation: member.designation!, // Add '!' to assert non-null
-              empName: member.name,
-            )),
-          );
-        } : null, // Disable tap for non-person entities like branches/zones
-        title: Text(member.name, style: const TextStyle(fontWeight: FontWeight.w500)),
+        onTap: isPerson
+            ? () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => BusinessPerformancePage(
+                      empId: member.id,
+                      designation:
+                          member.designation!, // Add '!' to assert non-null
+                      empName: member.name,
+                    ),
+                  ),
+                );
+              }
+            : null, // Disable tap for non-person entities like branches/zones
+        title: Text(
+          member.name,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
         subtitle: Text('ID: ${member.id}'),
         leading: CircleAvatar(
           backgroundColor: kPrimaryDarkBlue,
@@ -488,20 +609,22 @@ class _TeamListPageState extends State<TeamListPage> {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        trailing: (isPerson && member.mobile != null && member.mobile!.isNotEmpty)
+        trailing:
+            (isPerson && member.mobile != null && member.mobile!.isNotEmpty)
             ? IconButton(
                 icon: const Icon(Icons.phone, color: Colors.green),
                 tooltip: 'Call ${member.mobile}',
                 onPressed: () async {
-                  final Uri launchUri = Uri(
-                    scheme: 'tel',
-                    path: member.mobile,
-                  );
+                  final Uri launchUri = Uri(scheme: 'tel', path: member.mobile);
                   if (await canLaunchUrl(launchUri)) {
                     await launchUrl(launchUri);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Could not launch call to ${member.mobile}')),
+                      SnackBar(
+                        content: Text(
+                          'Could not launch call to ${member.mobile}',
+                        ),
+                      ),
                     );
                   }
                 },

@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:nli_apps/Screens/Agent/DuePolicyList.dart';
-import 'package:nli_apps/Screens/Agent/InforcePolicyList.dart';
-import 'package:nli_apps/Screens/Agent/change_password_screen.dart';
-import 'package:nli_apps/Screens/Agent/business_summary_screen.dart';
-import 'package:nli_apps/Screens/Agent/business_summary_mh_new_screen.dart';
-import 'package:nli_apps/Screens/Agent/business_performance_page.dart';
-import 'package:nli_apps/Screens/Agent/AgentOnboarding.dart';
-import 'package:nli_apps/Screens/Agent/complains_feedback_screen.dart';
-import 'package:nli_apps/Screens/Agent/team_details_business_screen.dart';
-import 'package:nli_apps/Screens/Agent/team_list_mh_screen.dart';
-import 'package:nli_apps/Screens/Agent/second_year_ren_business_all_screen.dart';
-import 'package:nli_apps/Screens/Agent/secondyearbusinessformh.dart';
-import 'package:nli_apps/Screens/Agent/teamlist.dart';
-import 'package:nli_apps/Screens/Public/Forms_download_live_api.dart'; 
-import 'package:nli_apps/Screens/Public/PolicyCategory.dart';
-import 'package:nli_apps/Screens/Agent/policy_search_screen.dart';
-import 'package:nli_apps/Screens/Public/apply_for_policy_screen.dart';
-import 'package:nli_apps/Screens/Public/bonusRate.dart';
-import 'package:nli_apps/Screens/Public/Claim_payment_list_api_fetch.dart';
-import 'package:nli_apps/Screens/Public/dashboard.dart';
-import 'package:nli_apps/Screens/Public/maturity_benefit_form.dart';
-import 'package:nli_apps/Screens/Public/premium_calculator_screen.dart';
-import 'package:nli_apps/Screens/login.dart';
+import 'package:petro_app/Screens/Agent/DuePolicyList.dart';
+import 'package:petro_app/Screens/Agent/InforcePolicyList.dart';
+import 'package:petro_app/Screens/Agent/change_password_screen.dart';
+import 'package:petro_app/Screens/Agent/business_summary_screen.dart';
+import 'package:petro_app/Screens/Agent/business_summary_mh_new_screen.dart';
+import 'package:petro_app/Screens/Agent/business_performance_page.dart';
+import 'package:petro_app/Screens/Agent/AgentOnboarding.dart';
+import 'package:petro_app/Screens/Agent/complains_feedback_screen.dart';
+import 'package:petro_app/Screens/Agent/team_details_business_screen.dart';
+import 'package:petro_app/Screens/Agent/team_list_mh_screen.dart';
+import 'package:petro_app/Screens/Agent/second_year_ren_business_all_screen.dart';
+import 'package:petro_app/Screens/Agent/secondyearbusinessformh.dart';
+import 'package:petro_app/Screens/Agent/teamlist.dart';
+import 'package:petro_app/Screens/Public/Forms_download_live_api.dart';
+import 'package:petro_app/Screens/Public/PolicyCategory.dart';
+import 'package:petro_app/Screens/Agent/policy_search_screen.dart';
+import 'package:petro_app/Screens/Public/apply_for_policy_screen.dart';
+import 'package:petro_app/Screens/Public/bonusRate.dart';
+import 'package:petro_app/Screens/Public/Claim_payment_list_api_fetch.dart';
+import 'package:petro_app/Screens/Public/dashboard.dart';
+import 'package:petro_app/Screens/Public/maturity_benefit_form.dart';
+import 'package:petro_app/Screens/Public/premium_calculator_screen.dart';
+import 'package:petro_app/Screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:nli_apps/Screens/Public/AccountDeletionRequest.dart';
+import 'package:petro_app/Screens/Public/AccountDeletionRequest.dart';
+
 // --- Constants ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
 const Color kAccentBlue = Color(0xFF3B82F6);
@@ -66,7 +67,6 @@ class _AgentDashboardState extends State<AgentDashboard> {
     AgentToolData('assets/icons/form_download.png', 'Form Download'),
     AgentToolData('assets/icons/maturity_benifit.png', 'Maturity Benefit'),
 
-
     // AgentToolData('assets/icons/apply_policy.png', 'Apply for New Policy'),
   ];
 
@@ -80,10 +80,12 @@ class _AgentDashboardState extends State<AgentDashboard> {
     AgentToolData('assets/icons/bonus_rate.png', 'Bonus Rate'),
     AgentToolData('assets/icons/claim_payment.png', 'Claim Payment'),
     AgentToolData('assets/icons/form_download.png', 'Form Download'),
-     AgentToolData('assets/icons/ren.png', 'Second Year Ren Business All'),
-    AgentToolData('assets/icons/others.png', 'Complains/feedback'), // Placeholder icon
+    AgentToolData('assets/icons/ren.png', 'Second Year Ren Business All'),
+    AgentToolData(
+      'assets/icons/others.png',
+      'Complains/feedback',
+    ), // Placeholder icon
     AgentToolData('assets/icons/maturity_benifit.png', 'Maturity Benefit'),
-   
   ];
 
   // New list for "MONITOR HEAD" designation agents
@@ -92,8 +94,14 @@ class _AgentDashboardState extends State<AgentDashboard> {
     AgentToolData('assets/icons/tracking.png', 'Business Summary MH'),
     AgentToolData('assets/icons/policy_advisor.png', 'Team List MH'),
     AgentToolData('assets/icons/claim.png', 'Policy Search'),
-    AgentToolData('assets/icons/tracking.png', 'Team Details Business'), // Placeholder icon
-    AgentToolData('assets/icons/others.png', '2nd Year Ren Business'), // Placeholder icon
+    AgentToolData(
+      'assets/icons/tracking.png',
+      'Team Details Business',
+    ), // Placeholder icon
+    AgentToolData(
+      'assets/icons/others.png',
+      '2nd Year Ren Business',
+    ), // Placeholder icon
     AgentToolData('assets/icons/calculator.png', 'Premium Calculator'),
     AgentToolData('assets/icons/products.png', 'Our Product'),
     AgentToolData('assets/icons/bonus_rate.png', 'Bonus Rate'),
@@ -101,7 +109,6 @@ class _AgentDashboardState extends State<AgentDashboard> {
     AgentToolData('assets/icons/form_download.png', 'Form Download'),
     // AgentToolData('assets/icons/others.png', 'Complains/feedback'), // Placeholder icon
     AgentToolData('assets/icons/maturity_benifit.png', 'Maturity Benefit'),
-
   ];
 
   // New list for "ZONE HEAD" designation agents
@@ -192,7 +199,11 @@ class _AgentDashboardState extends State<AgentDashboard> {
                   const SizedBox(height: 24),
                   Text(
                     'Agent Tools',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: kTextColorDark),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: kTextColorDark,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildToolsGrid(),
@@ -223,7 +234,11 @@ class _AgentDashboardState extends State<AgentDashboard> {
               const CircleAvatar(
                 radius: 35,
                 backgroundColor: Colors.white,
-                child: Icon(Icons.person_pin_circle, size: 40, color: kPrimaryDarkBlue),
+                child: Icon(
+                  Icons.person_pin_circle,
+                  size: 40,
+                  color: kPrimaryDarkBlue,
+                ),
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -233,12 +248,18 @@ class _AgentDashboardState extends State<AgentDashboard> {
                     Text(
                       _username,
                       style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     _buildDetailRow(Icons.badge_outlined, 'ID: $_empId'),
                     const SizedBox(height: 4),
-                    _buildDetailRow(Icons.work_outline, 'Designation: $_designation'),
+                    _buildDetailRow(
+                      Icons.work_outline,
+                      'Designation: $_designation',
+                    ),
                     const SizedBox(height: 4),
                     _buildDetailRow(Icons.phone_android, 'Mobile: $_mobile'),
                   ],
@@ -351,9 +372,7 @@ class _AgentDashboardState extends State<AgentDashboard> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(top: 50, bottom: 20),
-            decoration: const BoxDecoration(
-              color: kPrimaryDarkBlue,
-            ),
+            decoration: const BoxDecoration(color: kPrimaryDarkBlue),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -401,13 +420,24 @@ class _AgentDashboardState extends State<AgentDashboard> {
                   },
                 ),
                 ListTile(
-                    leading: Icon(Icons.delete_forever, color: Colors.grey.shade700),
-                    title: Text('Account Deletion Request', style: TextStyle(color: Colors.grey.shade700)),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const AccountDeletionRequest()));
-                    },
+                  leading: Icon(
+                    Icons.delete_forever,
+                    color: Colors.grey.shade700,
                   ),
+                  title: Text(
+                    'Account Deletion Request',
+                    style: TextStyle(color: Colors.grey.shade700),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AccountDeletionRequest(),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -446,21 +476,20 @@ class _AgentDashboardState extends State<AgentDashboard> {
           designation: _designation,
           empName: _username,
         );
-      //   break;
-      // case 'Business Performance ZH':
-      //   destination = BusinessPerformancePage(
-      //     empId: _empId,
-      //     designation: _designation,
-      //     empName: _username,
-      //   );
+        //   break;
+        // case 'Business Performance ZH':
+        //   destination = BusinessPerformancePage(
+        //     empId: _empId,
+        //     designation: _designation,
+        //     empName: _username,
+        //   );
         break;
 
-        
       case 'Business Summary':
         destination = const BusinessSummaryScreen();
         break;
 
-         case 'Team List':
+      case 'Team List':
         destination = const TeamListPage();
         break;
       // case 'Team List ZH':
@@ -479,11 +508,10 @@ class _AgentDashboardState extends State<AgentDashboard> {
         destination = const PolicySearchScreen();
         break;
 
-        
       case 'Our Product':
         destination = const PolicyCategoryScreen();
         break;
-        
+
       case 'Bonus Rate':
         destination = const BonusRatePage();
         break;
@@ -507,8 +535,8 @@ class _AgentDashboardState extends State<AgentDashboard> {
         destination = const ApplyForPolicyScreen();
         break;
       case 'Business Summary MH':
-         case 'Business Performance ZH':
-         case 'Business Performance AH':
+      case 'Business Performance ZH':
+      case 'Business Performance AH':
         destination = const BusinessSummaryMhNewScreen();
         break;
       case 'Team List MH':
@@ -525,21 +553,13 @@ class _AgentDashboardState extends State<AgentDashboard> {
       case 'Agent Onboarding':
         destination = const AgentOnboardingScreen();
         break;
-        case 'Second Year Ren Business All':
+      case 'Second Year Ren Business All':
         destination = const SecondYearRenBusinessAllScreen();
         break;
-   
 
-        
-        
-
-        case 'Complains/feedback':
+      case 'Complains/feedback':
         destination = const ComplainsFeedbackScreen();
         break;
-
-
-
-
 
       default:
         if (title == 'Change Password') {

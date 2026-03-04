@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:nli_apps/Screens/Public/premium_calculator_screen.dart';
+import 'package:petro_app/Screens/Public/premium_calculator_screen.dart';
 
 const Color kPrimaryColor = Color(0xFF1E40AF);
 const Color kBackgroundColor = Color(0xFFF3F4F6);
@@ -45,19 +45,25 @@ class _PolicyAdvisorOneState extends State<PolicyAdvisorOne> {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
           List<dynamic> data = jsonResponse['data'];
-          List<PolicyAdvisorData> parsedData = data.map((e) => PolicyAdvisorData.fromJson(e)).toList();
+          List<PolicyAdvisorData> parsedData = data
+              .map((e) => PolicyAdvisorData.fromJson(e))
+              .toList();
 
           // Check if leaf node (product)
-          if (parsedData.isNotEmpty && parsedData[0].productId != "0" && parsedData[0].productId != null && parsedData.length == 1) {
-             if (mounted) {
-               Navigator.push(
-                 context,
-                 MaterialPageRoute(
-                   builder: (context) => const PremiumCalculatorScreen(isFromPolicyAdvisor: true),
-                 ),
-               );
-             }
-             setState(() => _isLoading = false);
+          if (parsedData.isNotEmpty &&
+              parsedData[0].productId != "0" &&
+              parsedData[0].productId != null &&
+              parsedData.length == 1) {
+            if (mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const PremiumCalculatorScreen(isFromPolicyAdvisor: true),
+                ),
+              );
+            }
+            setState(() => _isLoading = false);
           } else {
             setState(() {
               _advisorData = parsedData;
@@ -81,7 +87,10 @@ class _PolicyAdvisorOneState extends State<PolicyAdvisorOne> {
     return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: AppBar(
-        title: const Text("Policy Advisor", style: TextStyle(fontWeight: FontWeight.bold)).tr(),
+        title: const Text(
+          "Policy Advisor",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ).tr(),
         backgroundColor: kPrimaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -90,145 +99,177 @@ class _PolicyAdvisorOneState extends State<PolicyAdvisorOne> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: kPrimaryColor))
           : _advisorData.isEmpty
-              ? Center(
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 60,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "No data available",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                // Styled Header Section
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 24.0,
+                    horizontal: 20.0,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: kPrimaryColor,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30),
+                    ),
+                  ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 60, color: Colors.grey.shade400),
-                      const SizedBox(height: 16),
-                      const Text("No data available", style: TextStyle(color: Colors.grey)),
+                      const Icon(
+                        Icons.support_agent,
+                        size: 48,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        "get-immediate",
+                        style: TextStyle(
+                          fontSize: 22.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ).tr(),
+                      const SizedBox(height: 4.0),
+                      const Text(
+                        "free-consultation",
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white70,
+                        ),
+                      ).tr(),
                     ],
                   ),
-                )
-              : Column(
-                  children: [
-                    // Styled Header Section
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 20.0),
-                      decoration: const BoxDecoration(
-                        color: kPrimaryColor,
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.support_agent, size: 48, color: Colors.white),
-                          const SizedBox(height: 12),
-                          const Text(
-                            "get-immediate",
-                            style: TextStyle(
-                              fontSize: 22.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ).tr(),
-                          const SizedBox(height: 4.0),
-                          const Text(
-                            "free-consultation",
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.white70,
-                            ),
-                          ).tr(),
-                        ],
-                      ),
-                    ),
-                    
-                    // Content List
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(20.0),
-                        itemCount: _advisorData.length,
-                        itemBuilder: (context, index) {
-                          final item = _advisorData[index];
-                          
-                          // Display Question (First item or type Question)
-                          if (index == 0 || item.titleType == 'Question') {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
-                              child: Text(
-                                item.advisorTitleEng ?? 'N/A',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  color: kTextColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            );
-                          } 
-                          
-                          // Display Answers as Interactive Cards
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                              border: _selectedValue == index 
-                                  ? Border.all(color: kPrimaryColor, width: 2)
-                                  : Border.all(color: Colors.transparent),
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(12),
-                                onTap: () async {
-                                  setState(() => _selectedValue = index);
-                                  await Future.delayed(const Duration(milliseconds: 300));
-                                  if (!mounted) return;
-                                  if (item.productId != null && item.productId != "0") {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const PremiumCalculatorScreen(isFromPolicyAdvisor: true),
-                                      ),
-                                    );
-                                  } else if (item.id != null) {
-                                    _fetchPolicyAdvisorData(item.id!);
-                                  }
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        _selectedValue == index ? Icons.radio_button_checked : Icons.radio_button_off,
-                                        color: _selectedValue == index ? kPrimaryColor : Colors.grey.shade400,
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Text(
-                                          item.advisorTitleEng ?? 'N/A',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: _selectedValue == index ? kPrimaryColor : kTextColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
                 ),
+
+                // Content List
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(20.0),
+                    itemCount: _advisorData.length,
+                    itemBuilder: (context, index) {
+                      final item = _advisorData[index];
+
+                      // Display Question (First item or type Question)
+                      if (index == 0 || item.titleType == 'Question') {
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                            top: 10.0,
+                            bottom: 20.0,
+                          ),
+                          child: Text(
+                            item.advisorTitleEng ?? 'N/A',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: kTextColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+
+                      // Display Answers as Interactive Cards
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                          border: _selectedValue == index
+                              ? Border.all(color: kPrimaryColor, width: 2)
+                              : Border.all(color: Colors.transparent),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () async {
+                              setState(() => _selectedValue = index);
+                              await Future.delayed(
+                                const Duration(milliseconds: 300),
+                              );
+                              if (!mounted) return;
+                              if (item.productId != null &&
+                                  item.productId != "0") {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const PremiumCalculatorScreen(
+                                          isFromPolicyAdvisor: true,
+                                        ),
+                                  ),
+                                );
+                              } else if (item.id != null) {
+                                _fetchPolicyAdvisorData(item.id!);
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 16.0,
+                                horizontal: 20.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _selectedValue == index
+                                        ? Icons.radio_button_checked
+                                        : Icons.radio_button_off,
+                                    color: _selectedValue == index
+                                        ? kPrimaryColor
+                                        : Colors.grey.shade400,
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      item.advisorTitleEng ?? 'N/A',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: _selectedValue == index
+                                            ? kPrimaryColor
+                                            : kTextColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
@@ -274,30 +315,18 @@ class _PolicyQuestionThreeState extends State<PolicyQuestionThree> {
             children: [
               const Text(
                 'Get Immediate',
-                style: TextStyle(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(
-                height: 6.0,
-              ),
+              const SizedBox(height: 6.0),
               const Text(
                 'Free Consultation !',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w400,
-                ),
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w400),
               ),
-              const SizedBox(
-                height: 30.0,
-              ),
+              const SizedBox(height: 30.0),
               Container(
                 height: 315,
                 width: MediaQuery.of(context).size.width - 32,
-                padding: const EdgeInsets.only(
-                  top: 20.0,
-                ),
+                padding: const EdgeInsets.only(top: 20.0),
                 decoration: BoxDecoration(
                   color: kThemeColor,
                   borderRadius: BorderRadius.circular(27.0),
@@ -316,49 +345,51 @@ class _PolicyQuestionThreeState extends State<PolicyQuestionThree> {
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 16.0,
-                    ),
+                    const SizedBox(height: 16.0),
                     ...professionList
-                        .map((profession) => Container(
-                              margin: const EdgeInsets.only(
-                                  bottom: 10.0, left: 20.0, right: 20.0),
-                              decoration: BoxDecoration(
-                                  color: kWhiteColor,
-                                  borderRadius: BorderRadius.circular(6.0),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                        color: Colors.grey,
-                                        blurRadius: 0.2,
-                                        spreadRadius: 0.5,
-                                        offset: Offset(0, .2)),
-                                  ]),
-                              child: RadioListTile(
-                                title: Text(
-                                  profession.label,
+                        .map(
+                          (profession) => Container(
+                            margin: const EdgeInsets.only(
+                              bottom: 10.0,
+                              left: 20.0,
+                              right: 20.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: kWhiteColor,
+                              borderRadius: BorderRadius.circular(6.0),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.grey,
+                                  blurRadius: 0.2,
+                                  spreadRadius: 0.5,
+                                  offset: Offset(0, .2),
                                 ),
-                                value: profession.index,
-                                onChanged: (val) {
-                                  setState(() {
-                                    id = profession.index;
-                                  });
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const PolicyQuestionFour()),
-                                  );
-                                },
-                                groupValue: id,
-                              ),
-                            ))
+                              ],
+                            ),
+                            child: RadioListTile(
+                              title: Text(profession.label),
+                              value: profession.index,
+                              onChanged: (val) {
+                                setState(() {
+                                  id = profession.index;
+                                });
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const PolicyQuestionFour(),
+                                  ),
+                                );
+                              },
+                              groupValue: id,
+                            ),
+                          ),
+                        )
                         .toList(),
                   ],
                 ),
               ),
-              const SizedBox(
-                height: 16.0,
-              ),
+              const SizedBox(height: 16.0),
             ],
           ),
         ),
@@ -419,30 +450,18 @@ class _PolicyQuestionFourState extends State<PolicyQuestionFour> {
             children: [
               const Text(
                 'Get Immediate',
-                style: TextStyle(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(
-                height: 6.0,
-              ),
+              const SizedBox(height: 6.0),
               const Text(
                 'Free Consultation !',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(
-                height: 30.0,
-              ),
+              const SizedBox(height: 30.0),
               Container(
                 height: 670,
                 width: MediaQuery.of(context).size.width - 40,
-                padding: const EdgeInsets.only(
-                  top: 20.0,
-                ),
+                padding: const EdgeInsets.only(top: 20.0),
                 decoration: BoxDecoration(
                   color: kThemeColor,
                   borderRadius: BorderRadius.circular(27.0),
@@ -463,48 +482,51 @@ class _PolicyQuestionFourState extends State<PolicyQuestionFour> {
                         softWrap: true,
                       ),
                     ),
-                    const SizedBox(
-                      height: 16.0,
-                    ),
+                    const SizedBox(height: 16.0),
                     ...optionList
-                        .map((option) => Container(
-                              margin: const EdgeInsets.only(
-                                  bottom: 10.0, left: 20.0, right: 20.0),
-                              decoration: BoxDecoration(
-                                  color: kWhiteColor,
-                                  borderRadius: BorderRadius.circular(6.0),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                        color: Colors.grey,
-                                        blurRadius: 0.2,
-                                        spreadRadius: 0.5,
-                                        offset: Offset(0, .2)),
-                                  ]),
-                              child: RadioListTile(
-                                title: Text(
-                                  option.label,
+                        .map(
+                          (option) => Container(
+                            margin: const EdgeInsets.only(
+                              bottom: 10.0,
+                              left: 20.0,
+                              right: 20.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: kWhiteColor,
+                              borderRadius: BorderRadius.circular(6.0),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.grey,
+                                  blurRadius: 0.2,
+                                  spreadRadius: 0.5,
+                                  offset: Offset(0, .2),
                                 ),
-                                value: option.index,
-                                onChanged: (val) {
-                                  setState(() {
-                                    id = option.index;
-                                  });
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const PremiumCalculatorScreen()));
-                                },
-                                groupValue: id,
-                              ),
-                            ))
+                              ],
+                            ),
+                            child: RadioListTile(
+                              title: Text(option.label),
+                              value: option.index,
+                              onChanged: (val) {
+                                setState(() {
+                                  id = option.index;
+                                });
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const PremiumCalculatorScreen(),
+                                  ),
+                                );
+                              },
+                              groupValue: id,
+                            ),
+                          ),
+                        )
                         .toList(),
                   ],
                 ),
               ),
-              const SizedBox(
-                height: 16.0,
-              ),
+              const SizedBox(height: 16.0),
             ],
           ),
         ),

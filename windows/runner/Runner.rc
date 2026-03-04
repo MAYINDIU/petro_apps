@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "nli_apps" "\0"
+            VALUE "FileDescription", "petro_app" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "nli_apps" "\0"
+            VALUE "InternalName", "petro_app" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "nli_apps.exe" "\0"
-            VALUE "ProductName", "nli_apps" "\0"
+            VALUE "OriginalFilename", "petro_app.exe" "\0"
+            VALUE "ProductName", "petro_app" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:nli_apps/Screens/Driver/DriverDashboard.dart';
-import 'package:nli_apps/Screens/Station/StationDashboard.dart';
-import 'package:nli_apps/Screens/login.dart';
+import 'package:petro_app/Screens/Driver/DriverDashboard.dart';
+import 'package:petro_app/Screens/Station/StationDashboard.dart';
+import 'package:petro_app/Screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Screen Imports
 // ignore: depend_on_referenced_packages
-import 'package:nli_apps/Screens/Public/dashboard.dart';
+import 'package:petro_app/Screens/Public/dashboard.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 4000),
+      duration: const Duration(milliseconds: 5000),
     );
 
     // ১. লোগো এনিমেশন
@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Continuous zoom in/out (pulse) animation
     _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
 
@@ -76,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _initApp() async {
-    await Future.delayed(const Duration(milliseconds: 4000));
+    await Future.delayed(const Duration(seconds: 6));
 
     if (!mounted) return;
 
@@ -88,12 +88,12 @@ class _SplashScreenState extends State<SplashScreen>
     if (token == null || token.isEmpty) {
       nextScreen = const LoginPage();
     } else {
-      if (userType == 'USER') {
+      if (userType == 'driver') {
         nextScreen = const DriverDashboard();
-      } else if (userType == 'AGENT') {
+      } else if (userType == 'station') {
         nextScreen = const StationDashboard();
       } else {
-        nextScreen = const Dashboard();
+        nextScreen = const LoginPage();
       }
     }
 
@@ -159,8 +159,8 @@ class _SplashScreenState extends State<SplashScreen>
                       child: ClipOval(
                         child: Image.asset(
                           'assets/icons/icon.png',
-                          height: size.width * 0.3,
-                          width: size.width * 0.3,
+                          height: size.width * 0.4,
+                          width: size.width * 0.4,
                           fit: BoxFit.cover,
                           errorBuilder: (c, e, s) => Icon(
                             Icons.security,
@@ -185,7 +185,7 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Column(
                         children: [
                           Text(
-                            'WMS CWallet',
+                            'PETROPAY',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: titleSize * 1.2,

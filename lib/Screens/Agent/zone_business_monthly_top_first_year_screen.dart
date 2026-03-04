@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:nli_apps/Screens/Agent/business_summary_screen.dart';
+import 'package:petro_app/Screens/Agent/business_summary_screen.dart';
 
 // --- Constants (re-used for consistency) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -15,7 +15,11 @@ const Color kTextColorDark = Color(0xFF1F2937);
 const String BASE_URL = 'https://nliapi.nextgenitltd.com/api';
 
 // Currency Formatter
-final _currencyFormatter = NumberFormat.currency(locale: 'en_IN', symbol: '', decimalDigits: 2);
+final _currencyFormatter = NumberFormat.currency(
+  locale: 'en_IN',
+  symbol: '',
+  decimalDigits: 2,
+);
 
 // Placeholder for UserData.token (assuming it's fetched from SharedPreferences)
 class AuthService {
@@ -61,7 +65,8 @@ class ZoneBusinessMonthlyScreen extends StatefulWidget {
   const ZoneBusinessMonthlyScreen({Key? key}) : super(key: key);
 
   @override
-  _ZoneBusinessMonthlyScreenState createState() => _ZoneBusinessMonthlyScreenState();
+  _ZoneBusinessMonthlyScreenState createState() =>
+      _ZoneBusinessMonthlyScreenState();
 }
 
 class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
@@ -90,7 +95,10 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
     super.dispose();
   }
 
-  Future<void> getResponseFormApi({required String office_type, required String searchValue}) async {
+  Future<void> getResponseFormApi({
+    required String office_type,
+    required String searchValue,
+  }) async {
     setState(() {
       isLoading = true;
       _currentMonthItems.clear();
@@ -113,12 +121,17 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
     }
 
     try {
-      final uri = Uri.parse("$BASE_URL/position-month-wise-zone-business/?office_type=${office_type}");
-      final response = await http.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      });
+      final uri = Uri.parse(
+        "$BASE_URL/position-month-wise-zone-business/?office_type=${office_type}",
+      );
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonResponse = jsonDecode(response.body);
@@ -126,7 +139,8 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
           List<dynamic> rawData = jsonResponse['branch'];
 
           var filteredData = rawData.where((element) {
-            final zoneName = element["zone_name"]?.toString().toLowerCase() ?? '';
+            final zoneName =
+                element["zone_name"]?.toString().toLowerCase() ?? '';
             return zoneName.contains(searchValue.toLowerCase());
           }).toList();
 
@@ -148,11 +162,14 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
           // Sort by position as it's already ranked by the API
           _currentMonthItems.sort((a, b) => a.position.compareTo(b.position));
           _previousMonthItems.sort((a, b) => a.position.compareTo(b.position));
-
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(jsonResponse['message'] ?? 'Failed to load data.')),
+              SnackBar(
+                content: Text(
+                  jsonResponse['message'] ?? 'Failed to load data.',
+                ),
+              ),
             );
           }
         }
@@ -165,9 +182,9 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Network error: $e')));
       }
     } finally {
       setState(() => isLoading = false);
@@ -176,7 +193,8 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(onWillPop: () async {
+    return WillPopScope(
+      onWillPop: () async {
         return true;
       },
       child: Scaffold(
@@ -190,21 +208,22 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
             iconSize: 20,
             onPressed: () {
               Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => BusinessSummaryScreen()));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BusinessSummaryScreen(),
+                ),
+              );
             },
           ),
           title: const Text(
             "Zone Business Monthly (Top First year)",
-            style: TextStyle(
-              color: kTextColorLight,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: kTextColorLight, fontSize: 14),
           ),
         ),
         body: isLoading
-            ? const Center(child: CircularProgressIndicator(color: kPrimaryDarkBlue))
+            ? const Center(
+                child: CircularProgressIndicator(color: kPrimaryDarkBlue),
+              )
             : CustomScrollView(
                 slivers: [
                   SliverAppBar(
@@ -220,7 +239,8 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
@@ -230,9 +250,12 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                                 decoration: InputDecoration(
                                   labelText: 'Office Type',
                                   border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 value: dropdownvalue,
                                 items: Office.map((String items) {
@@ -245,32 +268,38 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                                   if (newValue != null) {
                                     setState(() => dropdownvalue = newValue);
                                     await getResponseFormApi(
-                                        office_type: newValue,
-                                        searchValue: searchValue.text);
+                                      office_type: newValue,
+                                      searchValue: searchValue.text,
+                                    );
                                   }
                                 },
                               ),
                               TextFormField(
                                 controller: searchValue,
                                 decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  hintText: "Search by zone name",
+                                  labelText: 'Search',
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(
+                                      Icons.search,
+                                      color: kPrimaryDarkBlue,
                                     ),
-                                    hintText: "Search by zone name",
-                                    labelText: 'Search',
-                                    suffixIcon: IconButton(
-                                      icon: const Icon(Icons.search,
-                                          color: kPrimaryDarkBlue),
-                                      onPressed: () async {
-                                        await getResponseFormApi(
-                                            office_type: dropdownvalue,
-                                            searchValue: searchValue.text);
-                                      },
-                                    )),
+                                    onPressed: () async {
+                                      await getResponseFormApi(
+                                        office_type: dropdownvalue,
+                                        searchValue: searchValue.text,
+                                      );
+                                    },
+                                  ),
+                                ),
                                 onFieldSubmitted: (value) async {
                                   await getResponseFormApi(
-                                      office_type: dropdownvalue,
-                                      searchValue: value);
+                                    office_type: dropdownvalue,
+                                    searchValue: value,
+                                  );
                                 },
                               ),
                               ToggleButtons(
@@ -286,11 +315,15 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                                 borderColor: kPrimaryDarkBlue,
                                 children: const [
                                   Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('CURRENT MONTH'),
                                   ),
                                   Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('PREVIOUS MONTH'),
                                   ),
                                 ],
@@ -324,22 +357,48 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (BuildContext context, int index) {
-                        final items = isCurrentMonth ? _currentMonthItems : _previousMonthItems;
+                        final items = isCurrentMonth
+                            ? _currentMonthItems
+                            : _previousMonthItems;
                         final item = items[index];
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Row(
                             children: [
-                              _buildDataCell(item.position.toString(), width: 40, isCenter: true),
-                              _buildDataCell(item.zoneCode, width: 70, isBold: true, isCenter: true),
-                              Expanded(child: _buildDataCell(item.zoneName, isCenter: true)),
-                              _buildDataCell(_currencyFormatter.format(item.fr), width: 90, isNumeric: true),
-                              _buildDataCell(_currencyFormatter.format(item.rr), width: 90, isNumeric: true),
+                              _buildDataCell(
+                                item.position.toString(),
+                                width: 40,
+                                isCenter: true,
+                              ),
+                              _buildDataCell(
+                                item.zoneCode,
+                                width: 70,
+                                isBold: true,
+                                isCenter: true,
+                              ),
+                              Expanded(
+                                child: _buildDataCell(
+                                  item.zoneName,
+                                  isCenter: true,
+                                ),
+                              ),
+                              _buildDataCell(
+                                _currencyFormatter.format(item.fr),
+                                width: 90,
+                                isNumeric: true,
+                              ),
+                              _buildDataCell(
+                                _currencyFormatter.format(item.rr),
+                                width: 90,
+                                isNumeric: true,
+                              ),
                             ],
                           ),
                         );
                       },
-                      childCount: isCurrentMonth ? _currentMonthItems.length : _previousMonthItems.length,
+                      childCount: isCurrentMonth
+                          ? _currentMonthItems.length
+                          : _previousMonthItems.length,
                     ),
                   ),
                   SliverToBoxAdapter(
@@ -349,7 +408,8 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                         elevation: 4,
                         color: const Color.fromARGB(255, 20, 57, 143),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           child: Row(
@@ -361,9 +421,10 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                                   child: Text(
                                     "Total",
                                     style: TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -372,12 +433,17 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                                 child: Center(
                                   child: Text(
                                     isCurrentMonth
-                                        ? _currencyFormatter.format(_totalCurrentFR)
-                                        : _currencyFormatter.format(_totalPreviousFR),
+                                        ? _currencyFormatter.format(
+                                            _totalCurrentFR,
+                                          )
+                                        : _currencyFormatter.format(
+                                            _totalPreviousFR,
+                                          ),
                                     style: const TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -386,12 +452,17 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                                 child: Center(
                                   child: Text(
                                     isCurrentMonth
-                                        ? _currencyFormatter.format(_totalCurrentRR)
-                                        : _currencyFormatter.format(_totalPreviousRR),
+                                        ? _currencyFormatter.format(
+                                            _totalCurrentRR,
+                                          )
+                                        : _currencyFormatter.format(
+                                            _totalPreviousRR,
+                                          ),
                                     style: const TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -400,14 +471,18 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
       ),
     );
   }
 
-  Widget _buildHeaderCell(String title, {double? width, bool isNumeric = false}) {
+  Widget _buildHeaderCell(
+    String title, {
+    double? width,
+    bool isNumeric = false,
+  }) {
     return Container(
       width: width,
       height: double.infinity,
@@ -415,12 +490,22 @@ class _ZoneBusinessMonthlyScreenState extends State<ZoneBusinessMonthlyScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Text(
         title,
-        style: const TextStyle(color: kTextColorLight, fontWeight: FontWeight.bold, fontSize: 12),
+        style: const TextStyle(
+          color: kTextColorLight,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
       ),
     );
   }
 
-  Widget _buildDataCell(String text, {double? width, bool isNumeric = false, bool isBold = false, bool isCenter = false}) {
+  Widget _buildDataCell(
+    String text, {
+    double? width,
+    bool isNumeric = false,
+    bool isBold = false,
+    bool isCenter = false,
+  }) {
     return Container(
       width: width,
       height: 48,

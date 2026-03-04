@@ -1,4 +1,4 @@
-# nli_apps
+# petro_app
 
 A new Flutter project.
 

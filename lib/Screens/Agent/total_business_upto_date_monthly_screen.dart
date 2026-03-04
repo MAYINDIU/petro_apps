@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:nli_apps/Screens/Agent/business_summary_screen.dart';
+import 'package:petro_app/Screens/Agent/business_summary_screen.dart';
 
 // --- Constants (re-used for consistency) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -15,8 +15,11 @@ const Color kTextColorDark = Color(0xFF1F2937);
 const String BASE_URL = 'https://nliapi.nextgenitltd.com/api';
 
 // Currency Formatter
-final _currencyFormatter =
-    NumberFormat.currency(locale: 'en_IN', symbol: '', decimalDigits: 2);
+final _currencyFormatter = NumberFormat.currency(
+  locale: 'en_IN',
+  symbol: '',
+  decimalDigits: 2,
+);
 
 // Placeholder for UserData.token
 class AuthService {
@@ -103,19 +106,23 @@ class _TotalBusinessUptoDateMonthlyScreenState
 
     try {
       final uri = Uri.parse("$BASE_URL/update-total-business-month");
-      final response = await http.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      });
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse['success'] == true && jsonResponse['branch'] is List) {
           List<dynamic> rawData = jsonResponse['branch'];
 
-          var filteredData =
-              rawData.where((e) => e["office_type"] == type).toList();
+          var filteredData = rawData
+              .where((e) => e["office_type"] == type)
+              .toList();
 
           Map<String, TotalBusinessData> dataMap = {};
 
@@ -124,12 +131,14 @@ class _TotalBusinessUptoDateMonthlyScreenState
             if (project == null) continue;
 
             dataMap.putIfAbsent(
-                project, () => TotalBusinessData(project: project));
+              project,
+              () => TotalBusinessData(project: project),
+            );
 
             final item = dataMap[project]!;
             final premium =
                 double.tryParse(entry['premium_paid']?.toString() ?? '0.0') ??
-                    0.0;
+                0.0;
 
             if (entry['month'] == 'CURRENT') {
               if (entry['type'] == 'FR') item.currentFR += premium;
@@ -154,8 +163,10 @@ class _TotalBusinessUptoDateMonthlyScreenState
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                  content:
-                      Text(jsonResponse['message'] ?? 'Failed to load data.')),
+                content: Text(
+                  jsonResponse['message'] ?? 'Failed to load data.',
+                ),
+              ),
             );
           }
         }
@@ -168,9 +179,9 @@ class _TotalBusinessUptoDateMonthlyScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Network error: $e')));
       }
     } finally {
       setState(() => isLoading = false);
@@ -196,15 +207,13 @@ class _TotalBusinessUptoDateMonthlyScreenState
           ),
           title: const Text(
             "Total Business Upto Date (Monthly)",
-            style: TextStyle(
-              color: kTextColorLight,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: kTextColorLight, fontSize: 14),
           ),
         ),
         body: isLoading
             ? const Center(
-                child: CircularProgressIndicator(color: kPrimaryDarkBlue))
+                child: CircularProgressIndicator(color: kPrimaryDarkBlue),
+              )
             : CustomScrollView(
                 slivers: [
                   SliverAppBar(
@@ -220,7 +229,8 @@ class _TotalBusinessUptoDateMonthlyScreenState
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
@@ -230,9 +240,12 @@ class _TotalBusinessUptoDateMonthlyScreenState
                                 decoration: InputDecoration(
                                   labelText: 'Office Type',
                                   border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 value: dropdownvalue,
                                 items: Office.map((String items) {
@@ -261,13 +274,15 @@ class _TotalBusinessUptoDateMonthlyScreenState
                                 borderColor: kPrimaryDarkBlue,
                                 children: const [
                                   Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('CURRENT MONTH'),
                                   ),
                                   Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('PREVIOUS MONTH'),
                                   ),
                                 ],
@@ -295,16 +310,51 @@ class _TotalBusinessUptoDateMonthlyScreenState
                                 children: [
                                   Row(
                                     children: [
-                                      Expanded(child: _buildHeaderCell("Premium", height: 30)),
-                                      Expanded(child: _buildHeaderCell("Growth %", height: 30, fontSize: 10)),
+                                      Expanded(
+                                        child: _buildHeaderCell(
+                                          "Premium",
+                                          height: 30,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: _buildHeaderCell(
+                                          "Growth %",
+                                          height: 30,
+                                          fontSize: 10,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   Row(
                                     children: [
-                                      Expanded(child: _buildHeaderCell("First Yr", height: 30, fontSize: 10)),
-                                      Expanded(child: _buildHeaderCell("Ren Yr", height: 30, fontSize: 10)),
-                                      Expanded(child: _buildHeaderCell("First Yr", height: 30, fontSize: 10)),
-                                      Expanded(child: _buildHeaderCell("Ren Yr", height: 30, fontSize: 10)),
+                                      Expanded(
+                                        child: _buildHeaderCell(
+                                          "First Yr",
+                                          height: 30,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: _buildHeaderCell(
+                                          "Ren Yr",
+                                          height: 30,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: _buildHeaderCell(
+                                          "First Yr",
+                                          height: 30,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: _buildHeaderCell(
+                                          "Ren Yr",
+                                          height: 30,
+                                          fontSize: 10,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ],
@@ -316,50 +366,66 @@ class _TotalBusinessUptoDateMonthlyScreenState
                     ),
                   ),
                   SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        final item = _businessData[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Row(
-                            children: [
-                              _buildDataCell(item.project, width: 80, isBold: true),
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildDataCell(
-                                        _currencyFormatter.format(isCurrentMonth ? item.currentFR : item.previousFR),
-                                        isNumeric: true,
+                    delegate: SliverChildBuilderDelegate((
+                      BuildContext context,
+                      int index,
+                    ) {
+                      final item = _businessData[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          children: [
+                            _buildDataCell(
+                              item.project,
+                              width: 80,
+                              isBold: true,
+                            ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildDataCell(
+                                      _currencyFormatter.format(
+                                        isCurrentMonth
+                                            ? item.currentFR
+                                            : item.previousFR,
                                       ),
+                                      isNumeric: true,
                                     ),
-                                    Expanded(
-                                      child: _buildDataCell(
-                                        _currencyFormatter.format(isCurrentMonth ? item.currentRR : item.previousRR),
-                                        isNumeric: true,
+                                  ),
+                                  Expanded(
+                                    child: _buildDataCell(
+                                      _currencyFormatter.format(
+                                        isCurrentMonth
+                                            ? item.currentRR
+                                            : item.previousRR,
                                       ),
+                                      isNumeric: true,
                                     ),
-                                    Expanded(
-                                      child: _buildDataCell(
-                                        isCurrentMonth ? '${item.frGrowth.toStringAsFixed(0)}%' : '0%',
-                                        isNumeric: true,
-                                      ),
+                                  ),
+                                  Expanded(
+                                    child: _buildDataCell(
+                                      isCurrentMonth
+                                          ? '${item.frGrowth.toStringAsFixed(0)}%'
+                                          : '0%',
+                                      isNumeric: true,
                                     ),
-                                    Expanded(
-                                      child: _buildDataCell(
-                                        isCurrentMonth ? '${item.rrGrowth.toStringAsFixed(0)}%' : '0%',
-                                        isNumeric: true,
-                                      ),
+                                  ),
+                                  Expanded(
+                                    child: _buildDataCell(
+                                      isCurrentMonth
+                                          ? '${item.rrGrowth.toStringAsFixed(0)}%'
+                                          : '0%',
+                                      isNumeric: true,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                      childCount: _businessData.length,
-                    ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }, childCount: _businessData.length),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -368,64 +434,79 @@ class _TotalBusinessUptoDateMonthlyScreenState
                         elevation: 4,
                         color: const Color.fromARGB(255, 20, 57, 143),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16.0),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 80,
-                                    alignment: Alignment.center,
-                                    child: const Text(
-                                      "Total",
-                                      style: TextStyle(
-                                          color: kTextColorLight,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 80,
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "Total",
+                                    style: TextStyle(
+                                      color: kTextColorLight,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Align(
-                                            alignment: Alignment.centerRight,
-                                            child: Text(
-                                              isCurrentMonth
-                                                  ? _currencyFormatter.format(_totalCurrentFR)
-                                                  : _currencyFormatter.format(_totalPreviousFR),
-                                              style: const TextStyle(
-                                                  color: kTextColorLight,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold),
+                                ),
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Text(
+                                            isCurrentMonth
+                                                ? _currencyFormatter.format(
+                                                    _totalCurrentFR,
+                                                  )
+                                                : _currencyFormatter.format(
+                                                    _totalPreviousFR,
+                                                  ),
+                                            style: const TextStyle(
+                                              color: kTextColorLight,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                         ),
-                                        Expanded(
-                                          child: Align(
-                                            alignment: Alignment.centerRight,
-                                            child: Text(
-                                              isCurrentMonth
-                                                  ? _currencyFormatter.format(_totalCurrentRR)
-                                                  : _currencyFormatter.format(_totalPreviousRR),
-                                              style: const TextStyle(
-                                                  color: kTextColorLight,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold),
+                                      ),
+                                      Expanded(
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Text(
+                                            isCurrentMonth
+                                                ? _currencyFormatter.format(
+                                                    _totalCurrentRR,
+                                                  )
+                                                : _currencyFormatter.format(
+                                                    _totalPreviousRR,
+                                                  ),
+                                            style: const TextStyle(
+                                              color: kTextColorLight,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                         ),
-                                        // Placeholders for total growth if needed
-                                        const Expanded(child: SizedBox()),
-                                        const Expanded(child: SizedBox()),
-                                      ],
-                                    ),
+                                      ),
+                                      // Placeholders for total growth if needed
+                                      const Expanded(child: SizedBox()),
+                                      const Expanded(child: SizedBox()),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            )),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -435,7 +516,13 @@ class _TotalBusinessUptoDateMonthlyScreenState
     );
   }
 
-  Widget _buildHeaderCell(String title, {double? width, double? height, bool isNumeric = false, double fontSize = 12}) {
+  Widget _buildHeaderCell(
+    String title, {
+    double? width,
+    double? height,
+    bool isNumeric = false,
+    double fontSize = 12,
+  }) {
     return Container(
       width: width,
       height: height,
@@ -447,16 +534,21 @@ class _TotalBusinessUptoDateMonthlyScreenState
       child: Text(
         title,
         style: TextStyle(
-            color: kTextColorLight, fontWeight: FontWeight.bold, fontSize: fontSize),
+          color: kTextColorLight,
+          fontWeight: FontWeight.bold,
+          fontSize: fontSize,
+        ),
       ),
     );
   }
 
-  Widget _buildDataCell(String text,
-      {double? width,
-      bool isNumeric = false,
-      bool isBold = false,
-      bool isCenter = false}) {
+  Widget _buildDataCell(
+    String text, {
+    double? width,
+    bool isNumeric = false,
+    bool isBold = false,
+    bool isCenter = false,
+  }) {
     return Container(
       width: width,
       height: 48,

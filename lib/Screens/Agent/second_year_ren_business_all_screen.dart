@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:nli_apps/Screens/login.dart'; // Ensure this path is correct if using for logout/auth redirection
+// import 'package:petro_app/Screens/login.dart'; // Ensure this path is correct if using for logout/auth redirection
 
 // --- 🎨 Design System/Constants ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF); // A deep, professional blue
-const Color kTextColorLight = Color(0xFFFFFFFF); // White text for dark backgrounds
-const Color kScaffoldBackground = Color(0xFFF7F9FB); // Light, off-white background
+const Color kTextColorLight = Color(
+  0xFFFFFFFF,
+); // White text for dark backgrounds
+const Color kScaffoldBackground = Color(
+  0xFFF7F9FB,
+); // Light, off-white background
 const Color kTextColorDark = Color(0xFF1F2937); // Dark text
 const Color kAccentColor = Color(0xFF3B82F6); // A brighter blue for accents
 
@@ -43,7 +47,8 @@ class RenewalData {
 
   factory RenewalData.fromJson(Map<String, dynamic> json) {
     // Robust parsing for dynamic types
-    double toDouble(dynamic value) => double.tryParse(value?.toString() ?? '0.0') ?? 0.0;
+    double toDouble(dynamic value) =>
+        double.tryParse(value?.toString() ?? '0.0') ?? 0.0;
     int toInt(dynamic value) => int.tryParse(value?.toString() ?? '0') ?? 0;
 
     return RenewalData(
@@ -56,7 +61,8 @@ class RenewalData {
       preAmt: toDouble(json['pre_amt']),
       dueAmt: toDouble(json['due_amt']),
       amtPrc: toDouble(json['amt_prc']),
-      processDate: json['process_date'] ?? '2000-01-01', // Use a default safe date
+      processDate:
+          json['process_date'] ?? '2000-01-01', // Use a default safe date
     );
   }
 }
@@ -66,16 +72,22 @@ class SecondYearRenBusinessAllScreen extends StatefulWidget {
   const SecondYearRenBusinessAllScreen({Key? key}) : super(key: key);
 
   @override
-  _SecondYearRenBusinessAllScreenState createState() => _SecondYearRenBusinessAllScreenState();
+  _SecondYearRenBusinessAllScreenState createState() =>
+      _SecondYearRenBusinessAllScreenState();
 }
 
-class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAllScreen> {
+class _SecondYearRenBusinessAllScreenState
+    extends State<SecondYearRenBusinessAllScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
   Map<String, RenewalData> _data = {};
 
   // Formatters are heavy objects; initialize them once
-  final _currencyFormatter = NumberFormat.currency(locale: 'en_IN', symbol: '৳ ', decimalDigits: 2);
+  final _currencyFormatter = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '৳ ',
+    decimalDigits: 2,
+  );
   final _numberFormatter = NumberFormat.decimalPattern('en_IN');
   final _dateFormatter = DateFormat('dd MMM, yyyy');
 
@@ -111,7 +123,10 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
     try {
       final response = await http.get(
         Uri.parse('$BASE_URL/second-year-renewal-all'),
-        headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
       );
 
       if (response.statusCode == 200) {
@@ -127,17 +142,23 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
             });
           }
         } else {
-          throw Exception(jsonResponse['message'] ?? 'Failed to load data. API reported an issue.');
+          throw Exception(
+            jsonResponse['message'] ??
+                'Failed to load data. API reported an issue.',
+          );
         }
       } else {
-        throw Exception('Server error: ${response.statusCode}. Please try again later.');
+        throw Exception(
+          'Server error: ${response.statusCode}. Please try again later.',
+        );
       }
     } catch (e) {
       print('Fetch Error: $e'); // Log the error for debugging
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Error fetching data: Ensure you have a stable network connection.';
+          _errorMessage =
+              'Error fetching data: Ensure you have a stable network connection.';
         });
       }
     }
@@ -148,7 +169,10 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
     return Scaffold(
       backgroundColor: kScaffoldBackground,
       appBar: AppBar(
-        title: const Text('2nd Year Renewal Business', style: TextStyle(fontWeight: FontWeight.w600)),
+        title: const Text(
+          '2nd Year Renewal Business',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: kPrimaryDarkBlue,
         foregroundColor: kTextColorLight,
         elevation: 0, // Flat app bar for a modern look
@@ -159,7 +183,9 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: kPrimaryDarkBlue));
+      return const Center(
+        child: CircularProgressIndicator(color: kPrimaryDarkBlue),
+      );
     }
 
     if (_errorMessage.isNotEmpty) {
@@ -171,7 +197,11 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
             children: [
               const Icon(Icons.error_outline, color: Colors.red, size: 40),
               const SizedBox(height: 12),
-              Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.red, fontSize: 16)),
+              Text(
+                _errorMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+              ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _fetchData,
@@ -197,11 +227,14 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            if (_data['total'] != null) _buildDataCard('Total Business (All Projects)', _data['total']!),
+            if (_data['total'] != null)
+              _buildDataCard('Total Business (All Projects)', _data['total']!),
             const SizedBox(height: 20),
-            if (_data['akok'] != null) _buildDataCard('AKOK Project Business', _data['akok']!),
+            if (_data['akok'] != null)
+              _buildDataCard('AKOK Project Business', _data['akok']!),
             const SizedBox(height: 20),
-            if (_data['jana'] != null) _buildDataCard('JANA Project Business', _data['jana']!),
+            if (_data['jana'] != null)
+              _buildDataCard('JANA Project Business', _data['jana']!),
           ],
         ),
       ),
@@ -213,7 +246,10 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
       elevation: 6, // Increased elevation for a 'lifted' Material look
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16), // Softer, modern corners
-        side: const BorderSide(color: kAccentColor, width: 1.5), // A subtle border highlight
+        side: const BorderSide(
+          color: kAccentColor,
+          width: 1.5,
+        ), // A subtle border highlight
       ),
       margin: EdgeInsets.zero,
       child: Padding(
@@ -234,22 +270,48 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
 
             // Key Dates
             _buildInfoRow('Risk Year', data.riskYear, isHeader: true),
-            _buildInfoRow('Process Date', _dateFormatter.format(DateTime.parse(data.processDate)), isHeader: true),
+            _buildInfoRow(
+              'Process Date',
+              _dateFormatter.format(DateTime.parse(data.processDate)),
+              isHeader: true,
+            ),
             const SizedBox(height: 16),
 
             // Policy Quantity Section
             _buildSectionHeader('Policy Quantity (No. of Policies)'),
-            _buildInfoRow('Previous Qty', _numberFormatter.format(data.prevQty)),
-            _buildInfoRow('Preserved Qty', _numberFormatter.format(data.preQty), isPreserved: true),
-            _buildInfoRow('Due Qty', _numberFormatter.format(data.dueQty), isDue: true),
+            _buildInfoRow(
+              'Previous Qty',
+              _numberFormatter.format(data.prevQty),
+            ),
+            _buildInfoRow(
+              'Preserved Qty',
+              _numberFormatter.format(data.preQty),
+              isPreserved: true,
+            ),
+            _buildInfoRow(
+              'Due Qty',
+              _numberFormatter.format(data.dueQty),
+              isDue: true,
+            ),
             _buildRateRow('Qty Preservation Rate', data.qtyPrc),
             const SizedBox(height: 20),
 
             // Premium Amount Section
             _buildSectionHeader('Premium Amount (in BDT)'),
-            _buildInfoRow('Previous Amt', _currencyFormatter.format(data.prevAmt)),
-            _buildInfoRow('Preserved Amt', _currencyFormatter.format(data.preAmt), isPreserved: true),
-            _buildInfoRow('Due Amt', _currencyFormatter.format(data.dueAmt), isDue: true),
+            _buildInfoRow(
+              'Previous Amt',
+              _currencyFormatter.format(data.prevAmt),
+            ),
+            _buildInfoRow(
+              'Preserved Amt',
+              _currencyFormatter.format(data.preAmt),
+              isPreserved: true,
+            ),
+            _buildInfoRow(
+              'Due Amt',
+              _currencyFormatter.format(data.dueAmt),
+              isDue: true,
+            ),
             _buildRateRow('Amt Preservation Rate', data.amtPrc),
           ],
         ),
@@ -272,7 +334,13 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool isHeader = false, bool isPreserved = false, bool isDue = false}) {
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    bool isHeader = false,
+    bool isPreserved = false,
+    bool isDue = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
@@ -289,7 +357,11 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
           Text(
             value,
             style: TextStyle(
-              color: isPreserved ? Colors.green.shade700 : isDue ? Colors.red.shade700 : kTextColorDark,
+              color: isPreserved
+                  ? Colors.green.shade700
+                  : isDue
+                  ? Colors.red.shade700
+                  : kTextColorDark,
               fontWeight: FontWeight.w700,
               fontSize: 15,
             ),
@@ -307,7 +379,11 @@ class _SecondYearRenBusinessAllScreenState extends State<SecondYearRenBusinessAl
         children: [
           Text(
             label,
-            style: TextStyle(color: kPrimaryDarkBlue, fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: kPrimaryDarkBlue,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

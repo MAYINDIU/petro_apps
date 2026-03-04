@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:nli_apps/Screens/Public/Claim_payment_list_api_fetch.dart';
-import 'package:nli_apps/Screens/Public/ContactUsScreen.dart';
-import 'package:nli_apps/Screens/Public/PolicyAdvisorOne.dart';
-import 'package:nli_apps/Screens/Public/apply_for_policy_screen.dart';
-import 'package:nli_apps/Screens/Public/Forms_download_live_api.dart';
-import 'package:nli_apps/Screens/Public/PolicyCategory.dart';
-import 'package:nli_apps/Screens/Public/claim_policy_search_screen.dart';
-import 'package:nli_apps/Screens/Public/nli_about_us.dart';
-import 'package:nli_apps/Screens/Public/premium_calculator_screen.dart';
+import 'package:petro_app/Screens/Public/Claim_payment_list_api_fetch.dart';
+import 'package:petro_app/Screens/Public/ContactUsScreen.dart';
+import 'package:petro_app/Screens/Public/PolicyAdvisorOne.dart';
+import 'package:petro_app/Screens/Public/apply_for_policy_screen.dart';
+import 'package:petro_app/Screens/Public/Forms_download_live_api.dart';
+import 'package:petro_app/Screens/Public/PolicyCategory.dart';
+import 'package:petro_app/Screens/Public/claim_policy_search_screen.dart';
+import 'package:petro_app/Screens/Public/nli_about_us.dart';
+import 'package:petro_app/Screens/Public/premium_calculator_screen.dart';
 import 'dart:async';
-import 'package:nli_apps/Screens/Public/bonusRate.dart';
-import 'package:nli_apps/Screens/Public/maturity_benefit_form.dart';
-import 'package:nli_apps/Screens/login.dart';
-import 'package:nli_apps/Screens/Public/TrackingCode.dart';
-
+import 'package:petro_app/Screens/Public/bonusRate.dart';
+import 'package:petro_app/Screens/Public/maturity_benefit_form.dart';
+import 'package:petro_app/Screens/login.dart';
+import 'package:petro_app/Screens/Public/TrackingCode.dart';
 
 // ------------------- Helper Data Structure -------------------
 
@@ -38,26 +37,26 @@ class _PolishedDashboardState extends State<Dashboard> {
   // --- Data for the Policy Grid (All 12 items) ---
   final List<DashboardIconData> dashboardItems = const [
     DashboardIconData('assets/icons/products.png', 'Our Products'),
-        DashboardIconData('assets/icons/claim.png', 'Claim Policy'),
+    DashboardIconData('assets/icons/claim.png', 'Claim Policy'),
     DashboardIconData('assets/icons/bonus_rate.png', 'Bonus Rate'),
     DashboardIconData('assets/icons/maturity_benifit.png', 'Maturity Benefit'),
-  
+
     DashboardIconData('assets/icons/form_download.png', 'Forms Download'),
     DashboardIconData('assets/icons/claim_payment.png', 'Claim Payment'),
     DashboardIconData('assets/icons/contact-us.png', 'Contact Us'),
     DashboardIconData('assets/icons/policy_advisor.png', 'Policy Advisor'),
-     DashboardIconData('assets/icons/pay_with_proposal.png', 'Pay Proposal No'),
-       DashboardIconData('assets/icons/apply_policy.png', 'Apply For Policy'),
+    DashboardIconData('assets/icons/pay_with_proposal.png', 'Pay Proposal No'),
+    DashboardIconData('assets/icons/apply_policy.png', 'Apply For Policy'),
     DashboardIconData('assets/icons/tracking.png', 'Use Tracking Code'),
     DashboardIconData('assets/icons/others.png', 'About Us'),
   ];
 
   // --- Slider State & Content ---
   final List<String> _sliderImages = const [
-     'assets/images/banner.jpg',
+    'assets/images/banner.jpg',
     'assets/images/banner1.jpg',
     'assets/images/banner2.jpg',
-     'assets/images/banner.jpg',
+    'assets/images/banner.jpg',
   ];
 
   int _currentPage = 0;
@@ -74,7 +73,8 @@ class _PolishedDashboardState extends State<Dashboard> {
   late final List<Widget> _widgetOptions = <Widget>[
     // Index 0: Dashboard Content
     SingleChildScrollView(
-      padding: EdgeInsets.zero, // Ensures no extra space at the top of the scroll view.
+      padding: EdgeInsets
+          .zero, // Ensures no extra space at the top of the scroll view.
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -82,7 +82,7 @@ class _PolishedDashboardState extends State<Dashboard> {
           _buildImageSlider(),
           // Padding adjusted to eliminate top margin/padding for the grid
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0), 
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: _buildGridSection(),
           ),
           const SizedBox(height: 10),
@@ -90,14 +90,12 @@ class _PolishedDashboardState extends State<Dashboard> {
       ),
     ),
     // Index 1: Premium Calculator Tab
-    const PremiumCalculatorScreen(), 
+    const PremiumCalculatorScreen(),
     // Index 2: Products/My Plans Tab (Using Placeholder)
-    const PolicyCategoryScreen(), 
+    const PolicyCategoryScreen(),
     // Index 3: Login/Support Tab (Using Placeholder)
     // _buildPlaceholderScreen('Support / Login'),
-     const LoginPage()
-
-
+    const LoginPage(),
   ];
 
   @override
@@ -115,7 +113,11 @@ class _PolishedDashboardState extends State<Dashboard> {
           } else {
             _currentPage = 0;
           }
-          _pageController.animateToPage(_currentPage, duration: const Duration(milliseconds: 450), curve: Curves.easeIn);
+          _pageController.animateToPage(
+            _currentPage,
+            duration: const Duration(milliseconds: 450),
+            curve: Curves.easeIn,
+          );
         });
       } else {
         timer.cancel();
@@ -131,11 +133,10 @@ class _PolishedDashboardState extends State<Dashboard> {
   }
 
   // ------------------- Placeholder Screen Function -------------------
-  
+
   /// Used for screens that are not fully built yet, replacing the 'TargetScreen'.
   Widget _buildPlaceholderScreen(String title) {
     return Scaffold(
-   
       body: Center(
         child: Text(
           'Placeholder Screen for "$title" - Not Yet Implemented',
@@ -153,63 +154,44 @@ class _PolishedDashboardState extends State<Dashboard> {
       return;
     }
     Widget destination;
-    
+
     // Map known grid items to their imported screens
-    if (title == 'Our Products' || title == 'Products' ) {
+    if (title == 'Our Products' || title == 'Products') {
       destination = const PolicyCategoryScreen();
-    }
-    else if (title == 'Bonus Rate') {
+    } else if (title == 'Bonus Rate') {
       destination = const BonusRatePage();
-    }
-       else if (title == 'Policy Advisor') {
+    } else if (title == 'Policy Advisor') {
       destination = const PolicyAdvisorOne();
-    }
-    else if (title == 'Use Tracking Code') {
+    } else if (title == 'Use Tracking Code') {
       destination = const TrackingCodeScreen();
-    }
-
-
-    
-
-   else if (title == 'Claim Policy') {
+    } else if (title == 'Claim Policy') {
       destination = const ClaimPolicySearchScreen();
-    }
-    
-    else if (title == 'Maturity Benefit') {
+    } else if (title == 'Maturity Benefit') {
       destination = const MaturityBenefitForm();
-    }
-    else if (title == 'Forms Download') {
-      destination = const FormsDownloadScreen(); 
-    }
-    else if (title == 'Claim Payment') {
-      destination = const ClaimPaymentScreen(); 
-    }
-    else if (title == 'Contact Us') {
-      destination = const ContactUsScreen(); 
-    }
-    else if (title == 'About Us') {
-      destination = const AboutUsPage(); 
-    }
-     else if (title == 'Apply For Policy') {
-      destination = const ApplyForPolicyScreen(); 
-    }
-
-    else if (title == 'Get Quote / Premium Calculator' || title == 'Premium Calculator') {
+    } else if (title == 'Forms Download') {
+      destination = const FormsDownloadScreen();
+    } else if (title == 'Claim Payment') {
+      destination = const ClaimPaymentScreen();
+    } else if (title == 'Contact Us') {
+      destination = const ContactUsScreen();
+    } else if (title == 'About Us') {
+      destination = const AboutUsPage();
+    } else if (title == 'Apply For Policy') {
+      destination = const ApplyForPolicyScreen();
+    } else if (title == 'Get Quote / Premium Calculator' ||
+        title == 'Premium Calculator') {
       destination = const PremiumCalculatorScreen();
-    }
-    else {
+    } else {
       // Use placeholder for all other links
       destination = _buildPlaceholderScreen(title);
     }
-    
+
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => destination,
-      ),
+      MaterialPageRoute(builder: (context) => destination),
     );
   }
-  
+
   void _onTabTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -220,36 +202,43 @@ class _PolishedDashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> tabTitles = const ['Dashboard', 'Premium Calculator', 'Products', 'Login'];
+    final List<String> tabTitles = const [
+      'Dashboard',
+      'Premium Calculator',
+      'Products',
+      'Login',
+    ];
 
-  return Scaffold(
-    // MODIFICATION: AppBar is now always null
-    appBar: null, 
-    
-    backgroundColor: _lightBackground,
-    
-    // Displays the current tab content
-    body: _widgetOptions.elementAt(_selectedIndex),
+    return Scaffold(
+      // MODIFICATION: AppBar is now always null
+      appBar: null,
 
-    // Bottom Navigation Bar
-    bottomNavigationBar: _buildBottomNavigationBar(),
-  );
+      backgroundColor: _lightBackground,
+
+      // Displays the current tab content
+      body: _widgetOptions.elementAt(_selectedIndex),
+
+      // Bottom Navigation Bar
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
   }
 
   // ------------------- Helper Widgets -------------------
 
   Widget _buildWelcomeHeader() {
     const LinearGradient blueGradient = LinearGradient(
-      colors: [
-        Color(0xFF42A5F5),
-        Color(0xFF1976D2),
-      ],
+      colors: [Color(0xFF42A5F5), Color(0xFF1976D2)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 50, 20, 0), // Set bottom padding to 0 to remove the gap.
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        50,
+        20,
+        0,
+      ), // Set bottom padding to 0 to remove the gap.
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -307,14 +296,16 @@ class _PolishedDashboardState extends State<Dashboard> {
   Widget _buildImageSlider() {
     return Column(
       children: [
-        SizedBox( // Increased height to accommodate the new design
+        SizedBox(
+          // Increased height to accommodate the new design
           height: 160,
           child: PageView.builder(
             controller: _pageController,
             itemCount: _sliderImages.length,
             onPageChanged: (int page) {
               setState(() {
-                _currentPage = page; // This updates the state for both manual and automatic slides.
+                _currentPage =
+                    page; // This updates the state for both manual and automatic slides.
               });
             },
             itemBuilder: (context, index) {
@@ -357,7 +348,10 @@ class _PolishedDashboardState extends State<Dashboard> {
                   errorBuilder: (context, error, stackTrace) => Container(
                     color: Colors.grey.shade200,
                     child: const Center(
-                      child: Text('Image asset not found', textAlign: TextAlign.center),
+                      child: Text(
+                        'Image asset not found',
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
@@ -367,7 +361,10 @@ class _PolishedDashboardState extends State<Dashboard> {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.transparent, Colors.black.withOpacity(0.3)],
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.3),
+                      ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       stops: const [0.6, 1.0],
@@ -412,28 +409,26 @@ class _PolishedDashboardState extends State<Dashboard> {
           ),
           itemCount: dashboardItems.length,
           itemBuilder: (BuildContext context, int index) {
-            return _buildGridItem(
-              context,
-              item: dashboardItems[index],
-            );
+            return _buildGridItem(context, item: dashboardItems[index]);
           },
         ),
       ],
     );
   }
 
-  Widget _buildGridItem(BuildContext context, {required DashboardIconData item}) {
+  Widget _buildGridItem(
+    BuildContext context, {
+    required DashboardIconData item,
+  }) {
     // ignore: unused_local_variable
     const Color iconBackgroundColor = Color.fromRGBO(255, 255, 255, 1);
 
     return Card(
       color: Colors.white,
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: InkWell(
-        onTap: () => _onItemTapped(item.title), 
+        onTap: () => _onItemTapped(item.title),
         borderRadius: BorderRadius.circular(10),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
@@ -446,10 +441,14 @@ class _PolishedDashboardState extends State<Dashboard> {
                 decoration: const BoxDecoration(),
                 child: Image.asset(
                   item.iconPath,
-                  width: 40, 
+                  width: 40,
                   height: 40,
                   errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.error_outline, size: 24, color: Colors.red);
+                    return const Icon(
+                      Icons.error_outline,
+                      size: 24,
+                      color: Colors.red,
+                    );
                   },
                 ),
               ),
@@ -542,7 +541,7 @@ class _PolishedDashboardState extends State<Dashboard> {
       unselectedItemColor: Colors.grey,
       backgroundColor: Colors.white,
       type: BottomNavigationBarType.fixed,
-      onTap: _onTabTapped, 
+      onTap: _onTabTapped,
       selectedFontSize: 12,
       unselectedFontSize: 12,
       showUnselectedLabels: true,

@@ -1,4 +1,4 @@
-package com.example.nli_apps
+package com.example.petro_app
 
 import io.flutter.embedding.android.FlutterActivity
 

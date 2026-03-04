@@ -1,6 +1,6 @@
 {
-    "name": "nli_apps",
-    "short_name": "nli_apps",
+    "name": "petro_app",
+    "short_name": "petro_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

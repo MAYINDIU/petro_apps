@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:nli_apps/Screens/Agent/zone_business_yearly_by_zone_name_screen.dart';
-import 'package:nli_apps/Screens/Agent/zone_business_top_first_year_screen.dart';
-import 'package:nli_apps/Screens/Agent/zone_business_monthly_top_first_year_screen.dart';
-import 'package:nli_apps/Screens/Agent/area_business_yearly_by_area_name_screen.dart';
-import 'package:nli_apps/Screens/Agent/area_business_yearly_top_first_year_screen.dart';
-import 'package:nli_apps/Screens/Agent/area_business_monthly_top_first_year_screen.dart';
-import 'package:nli_apps/Screens/Agent/total_business_upto_date_monthly_screen.dart';
-import 'package:nli_apps/Screens/Agent/total_business_upto_date_screen.dart';
-import 'package:nli_apps/Screens/Agent/total_business_yearly_screen.dart';
+import 'package:petro_app/Screens/Agent/zone_business_yearly_by_zone_name_screen.dart';
+import 'package:petro_app/Screens/Agent/zone_business_top_first_year_screen.dart';
+import 'package:petro_app/Screens/Agent/zone_business_monthly_top_first_year_screen.dart';
+import 'package:petro_app/Screens/Agent/area_business_yearly_by_area_name_screen.dart';
+import 'package:petro_app/Screens/Agent/area_business_yearly_top_first_year_screen.dart';
+import 'package:petro_app/Screens/Agent/area_business_monthly_top_first_year_screen.dart';
+import 'package:petro_app/Screens/Agent/total_business_upto_date_monthly_screen.dart';
+import 'package:petro_app/Screens/Agent/total_business_upto_date_screen.dart';
+import 'package:petro_app/Screens/Agent/total_business_yearly_screen.dart';
 
 // --- Constants (re-used for consistency) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -28,7 +28,7 @@ class BusinessSummaryScreen extends StatelessWidget {
     'Area Business Monthly top First Year',
     'Total Business Upto date Monthly',
     'Total Business Upto date',
-        'Total Business Yearly',
+    'Total Business Yearly',
   ];
 
   // Helper to navigate to a placeholder screen
@@ -58,9 +58,7 @@ class BusinessSummaryScreen extends StatelessWidget {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => destinationScreen,
-      ),
+      MaterialPageRoute(builder: (context) => destinationScreen),
     );
   }
 
@@ -100,11 +98,7 @@ class BusinessSummaryScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/icons/businesss.png',
-              height: 40,
-              width: 40,
-            ),
+            Image.asset('assets/icons/businesss.png', height: 40, width: 40),
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -133,7 +127,10 @@ class BusinessSummaryScreen extends StatelessWidget {
         foregroundColor: kTextColorLight,
       ),
       body: const Center(
-        child: Text('This report is under development.', style: TextStyle(fontSize: 16)),
+        child: Text(
+          'This report is under development.',
+          style: TextStyle(fontSize: 16),
+        ),
       ),
     );
   }

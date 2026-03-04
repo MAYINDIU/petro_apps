@@ -1,5 +1,5 @@
-name: nli_apps
-description: "WmsCWallet"
+name: petro_app
+description: "PetroApp"
 publish_to: 'none'
 
 version: 1.0.0+1

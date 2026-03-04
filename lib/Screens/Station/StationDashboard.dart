@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:nli_apps/Screens/Public/change_password_screen.dart';
+import 'package:petro_app/Screens/Public/change_password_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:nli_apps/Screens/login.dart';
+import 'package:petro_app/Screens/login.dart';
 
 // --- Constants (Colors and Paths) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:nli_apps/Screens/Agent/business_summary_screen.dart';
+import 'package:petro_app/Screens/Agent/business_summary_screen.dart';
 
 // --- Constants (re-used for consistency) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -15,7 +15,11 @@ const Color kTextColorDark = Color(0xFF1F2937);
 const String BASE_URL = 'https://nliapi.nextgenitltd.com/api';
 
 // Currency Formatter
-final _currencyFormatter = NumberFormat.currency(locale: 'en_IN', symbol: '', decimalDigits: 2);
+final _currencyFormatter = NumberFormat.currency(
+  locale: 'en_IN',
+  symbol: '',
+  decimalDigits: 2,
+);
 
 // Placeholder for UserData.token
 class AuthService {
@@ -69,7 +73,10 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
     super.dispose();
   }
 
-  Future<void> getResponseFormApi({required String office_type, required String searchValue}) async {
+  Future<void> getResponseFormApi({
+    required String office_type,
+    required String searchValue,
+  }) async {
     setState(() {
       isLoading = true;
       _areaData.clear();
@@ -91,12 +98,17 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
     }
 
     try {
-      final uri = Uri.parse("$BASE_URL/area-business/?office_type=${office_type}");
-      final response = await http.get(uri, headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      });
+      final uri = Uri.parse(
+        "$BASE_URL/area-business/?office_type=${office_type}",
+      );
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonResponse = jsonDecode(response.body);
@@ -104,7 +116,8 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
           List<dynamic> rawData = jsonResponse['branch'];
 
           var filteredData = rawData.where((element) {
-            final areaName = element["area_name"]?.toString().toLowerCase() ?? '';
+            final areaName =
+                element["area_name"]?.toString().toLowerCase() ?? '';
             return areaName.contains(this.searchValue.text.toLowerCase());
           }).toList();
 
@@ -114,10 +127,18 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
             final areaCode = entry['area_code']?.toString();
             if (areaCode == null) continue;
 
-            dataMap.putIfAbsent(areaCode, () => AreaBusinessData(areaCode: areaCode, areaName: entry['area_name'] ?? 'N/A'));
+            dataMap.putIfAbsent(
+              areaCode,
+              () => AreaBusinessData(
+                areaCode: areaCode,
+                areaName: entry['area_name'] ?? 'N/A',
+              ),
+            );
 
             final item = dataMap[areaCode]!;
-            final premium = double.tryParse(entry['premium_paid']?.toString() ?? '0.0') ?? 0.0;
+            final premium =
+                double.tryParse(entry['premium_paid']?.toString() ?? '0.0') ??
+                0.0;
 
             if (entry['year_category'] == 'CURRENT_YEAR') {
               if (entry['type'] == 'FR') item.currentFR += premium;
@@ -139,11 +160,14 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
             _totalPreviousFR += item.previousFR;
             _totalPreviousRR += item.previousRR;
           }
-
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(jsonResponse['message'] ?? 'Failed to load data.')),
+              SnackBar(
+                content: Text(
+                  jsonResponse['message'] ?? 'Failed to load data.',
+                ),
+              ),
             );
           }
         }
@@ -156,9 +180,9 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Network error: $e')));
       }
     } finally {
       setState(() => isLoading = false);
@@ -167,7 +191,8 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(onWillPop: () async {
+    return WillPopScope(
+      onWillPop: () async {
         return true;
       },
       child: Scaffold(
@@ -181,21 +206,22 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
             iconSize: 20,
             onPressed: () {
               Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => BusinessSummaryScreen()));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BusinessSummaryScreen(),
+                ),
+              );
             },
           ),
           title: const Text(
             "Area Business Yearly (By Area Name)",
-            style: TextStyle(
-              color: kTextColorLight,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: kTextColorLight, fontSize: 14),
           ),
         ),
         body: isLoading
-            ? const Center(child: CircularProgressIndicator(color: kPrimaryDarkBlue))
+            ? const Center(
+                child: CircularProgressIndicator(color: kPrimaryDarkBlue),
+              )
             : CustomScrollView(
                 slivers: [
                   SliverAppBar(
@@ -211,7 +237,8 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
@@ -221,9 +248,12 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                                 decoration: InputDecoration(
                                   labelText: 'Office Type',
                                   border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 value: dropdownvalue,
                                 items: Office.map((String items) {
@@ -236,32 +266,38 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                                   if (newValue != null) {
                                     setState(() => dropdownvalue = newValue);
                                     await getResponseFormApi(
-                                        office_type: newValue,
-                                        searchValue: searchValue.text);
+                                      office_type: newValue,
+                                      searchValue: searchValue.text,
+                                    );
                                   }
                                 },
                               ),
                               TextFormField(
                                 controller: searchValue,
                                 decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  hintText: "Search by area name",
+                                  labelText: 'Search',
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(
+                                      Icons.search,
+                                      color: kPrimaryDarkBlue,
                                     ),
-                                    hintText: "Search by area name",
-                                    labelText: 'Search',
-                                    suffixIcon: IconButton(
-                                      icon: const Icon(Icons.search,
-                                          color: kPrimaryDarkBlue),
-                                      onPressed: () async {
-                                        await getResponseFormApi(
-                                            office_type: dropdownvalue,
-                                            searchValue: searchValue.text);
-                                      },
-                                    )),
+                                    onPressed: () async {
+                                      await getResponseFormApi(
+                                        office_type: dropdownvalue,
+                                        searchValue: searchValue.text,
+                                      );
+                                    },
+                                  ),
+                                ),
                                 onFieldSubmitted: (value) async {
                                   await getResponseFormApi(
-                                      office_type: dropdownvalue,
-                                      searchValue: value);
+                                    office_type: dropdownvalue,
+                                    searchValue: value,
+                                  );
                                 },
                               ),
                               ToggleButtons(
@@ -277,11 +313,15 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                                 borderColor: kPrimaryDarkBlue,
                                 children: const [
                                   Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('CURRENT YEAR'),
                                   ),
                                   Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                    ),
                                     child: Text('PREVIOUS YEAR'),
                                   ),
                                 ],
@@ -305,30 +345,64 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                         children: [
                           _buildHeaderCell("Code", width: 70),
                           Expanded(child: _buildHeaderCell("Name")),
-                          _buildHeaderCell("First Yr", width: 90, isNumeric: true),
-                          _buildHeaderCell("Ren Yr", width: 90, isNumeric: true),
+                          _buildHeaderCell(
+                            "First Yr",
+                            width: 90,
+                            isNumeric: true,
+                          ),
+                          _buildHeaderCell(
+                            "Ren Yr",
+                            width: 90,
+                            isNumeric: true,
+                          ),
                         ],
                       ),
                     ),
                   ),
                   SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        final item = _areaData[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Row(
-                            children: [
-                              _buildDataCell(item.areaCode, width: 70, isBold: true, isCenter: true),
-                              Expanded(child: _buildDataCell(item.areaName, isCenter: true)),
-                              _buildDataCell(_currencyFormatter.format(isCurrentYear ? item.currentFR : item.previousFR), width: 90, isNumeric: true),
-                              _buildDataCell(_currencyFormatter.format(isCurrentYear ? item.currentRR : item.previousRR), width: 90, isNumeric: true),
-                            ],
-                          ),
-                        );
-                      },
-                      childCount: _areaData.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((
+                      BuildContext context,
+                      int index,
+                    ) {
+                      final item = _areaData[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          children: [
+                            _buildDataCell(
+                              item.areaCode,
+                              width: 70,
+                              isBold: true,
+                              isCenter: true,
+                            ),
+                            Expanded(
+                              child: _buildDataCell(
+                                item.areaName,
+                                isCenter: true,
+                              ),
+                            ),
+                            _buildDataCell(
+                              _currencyFormatter.format(
+                                isCurrentYear
+                                    ? item.currentFR
+                                    : item.previousFR,
+                              ),
+                              width: 90,
+                              isNumeric: true,
+                            ),
+                            _buildDataCell(
+                              _currencyFormatter.format(
+                                isCurrentYear
+                                    ? item.currentRR
+                                    : item.previousRR,
+                              ),
+                              width: 90,
+                              isNumeric: true,
+                            ),
+                          ],
+                        ),
+                      );
+                    }, childCount: _areaData.length),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -337,7 +411,8 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                         elevation: 4,
                         color: const Color.fromARGB(255, 20, 57, 143),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           child: Row(
@@ -348,9 +423,10 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                                   child: Text(
                                     "Total",
                                     style: TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -359,12 +435,17 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                                 child: Center(
                                   child: Text(
                                     isCurrentYear
-                                        ? _currencyFormatter.format(_totalCurrentFR)
-                                        : _currencyFormatter.format(_totalPreviousFR),
+                                        ? _currencyFormatter.format(
+                                            _totalCurrentFR,
+                                          )
+                                        : _currencyFormatter.format(
+                                            _totalPreviousFR,
+                                          ),
                                     style: const TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -373,12 +454,17 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                                 child: Center(
                                   child: Text(
                                     isCurrentYear
-                                        ? _currencyFormatter.format(_totalCurrentRR)
-                                        : _currencyFormatter.format(_totalPreviousRR),
+                                        ? _currencyFormatter.format(
+                                            _totalCurrentRR,
+                                          )
+                                        : _currencyFormatter.format(
+                                            _totalPreviousRR,
+                                          ),
                                     style: const TextStyle(
-                                        color: kTextColorLight,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
+                                      color: kTextColorLight,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -387,14 +473,18 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
       ),
     );
   }
 
-  Widget _buildHeaderCell(String title, {double? width, bool isNumeric = false}) {
+  Widget _buildHeaderCell(
+    String title, {
+    double? width,
+    bool isNumeric = false,
+  }) {
     return Container(
       width: width,
       height: double.infinity,
@@ -402,12 +492,22 @@ class _AreaBusinessScreenState extends State<AreaBusinessScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Text(
         title,
-        style: const TextStyle(color: kTextColorLight, fontWeight: FontWeight.bold, fontSize: 12),
+        style: const TextStyle(
+          color: kTextColorLight,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
       ),
     );
   }
 
-  Widget _buildDataCell(String text, {double? width, bool isNumeric = false, bool isBold = false, bool isCenter = false}) {
+  Widget _buildDataCell(
+    String text, {
+    double? width,
+    bool isNumeric = false,
+    bool isBold = false,
+    bool isCenter = false,
+  }) {
     return Container(
       width: width,
       height: 48,

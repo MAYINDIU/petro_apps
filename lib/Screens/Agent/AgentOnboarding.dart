@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:nli_apps/Screens/Agent/video_tutorial_screen.dart';
-import 'package:nli_apps/Screens/Agent/company_achievement_screen.dart';
-import 'package:nli_apps/Screens/Agent/circular_screen.dart';
-
+import 'package:petro_app/Screens/Agent/video_tutorial_screen.dart';
+import 'package:petro_app/Screens/Agent/company_achievement_screen.dart';
+import 'package:petro_app/Screens/Agent/circular_screen.dart';
 
 // Re-using constants from AgentDashboard for consistency
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -65,7 +64,11 @@ class _AgentOnboardingScreenState extends State<AgentOnboardingScreen> {
                   const SizedBox(height: 24),
                   Text(
                     'Resources',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: kTextColorDark),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: kTextColorDark,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildFeatureCards(),
@@ -96,7 +99,11 @@ class _AgentOnboardingScreenState extends State<AgentOnboardingScreen> {
               const CircleAvatar(
                 radius: 35,
                 backgroundColor: Colors.white,
-                child: Icon(Icons.person_pin_circle, size: 40, color: kPrimaryDarkBlue),
+                child: Icon(
+                  Icons.person_pin_circle,
+                  size: 40,
+                  color: kPrimaryDarkBlue,
+                ),
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -105,12 +112,19 @@ class _AgentOnboardingScreenState extends State<AgentOnboardingScreen> {
                   children: [
                     Text(
                       _username,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     _buildDetailRow(Icons.badge_outlined, 'ID: $_empId'),
                     const SizedBox(height: 4),
-                    _buildDetailRow(Icons.work_outline, 'Designation: $_designation'),
+                    _buildDetailRow(
+                      Icons.work_outline,
+                      'Designation: $_designation',
+                    ),
                     const SizedBox(height: 4),
                     _buildDetailRow(Icons.phone_android, 'Mobile: $_mobile'),
                   ],
@@ -176,14 +190,12 @@ class _AgentOnboardingScreenState extends State<AgentOnboardingScreen> {
             );
           } else if (title == 'Circular') {
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const CircularScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const CircularScreen()),
             );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('$title tapped!')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('$title tapped!')));
           }
         },
         child: Column(

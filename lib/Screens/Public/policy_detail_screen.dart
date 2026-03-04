@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
-import 'package:nli_apps/Screens/Public/premium_calculator_screen.dart'; 
+import 'package:petro_app/Screens/Public/premium_calculator_screen.dart';
 
-const String categoryApiBaseUrl = 'https://nliuserapi.nextgenitltd.com/api/category-wise-policy';
-const Color _deepBlue = Color(0xFF0D47A1); 
-const Color _lightBlue = Color(0xFF1977D2); 
+const String categoryApiBaseUrl =
+    'https://nliuserapi.nextgenitltd.com/api/category-wise-policy';
+const Color _deepBlue = Color(0xFF0D47A1);
+const Color _lightBlue = Color(0xFF1977D2);
 const Color _whiteColor = Colors.white;
 
 // --- Policy Model (Unchanged) ---
@@ -26,8 +27,7 @@ class Policy {
     required this.termOfThePolicy,
     required this.onMaturity,
     required this.inCaseOfAssuredDeath,
-     required this.SupplementaryCovers,
-    
+    required this.SupplementaryCovers,
   });
 
   factory Policy.fromJson(Map<String, dynamic> json) {
@@ -38,7 +38,7 @@ class Policy {
       termOfThePolicy: json['TermOfThePolicy'] as String? ?? 'N/A',
       onMaturity: json['OnMaturity'] as String? ?? 'N/A',
       inCaseOfAssuredDeath: json['InCaseOfAssuredDeath'] as String? ?? 'N/A',
-       SupplementaryCovers: json['SupplementaryCover'] as String? ?? 'N/A',
+      SupplementaryCovers: json['SupplementaryCover'] as String? ?? 'N/A',
     );
   }
 }
@@ -58,10 +58,14 @@ Future<List<Policy>> fetchCategoryPolicies(String categoryName) async {
           .map((json) => Policy.fromJson(json as Map<String, dynamic>))
           .toList();
     } else {
-      throw Exception('API Response Error: Missing or invalid "data" key in policy list.');
+      throw Exception(
+        'API Response Error: Missing or invalid "data" key in policy list.',
+      );
     }
   } else {
-    throw Exception('Failed to load policies for $categoryName. Status Code: ${response.statusCode}');
+    throw Exception(
+      'Failed to load policies for $categoryName. Status Code: ${response.statusCode}',
+    );
   }
 }
 
@@ -77,9 +81,9 @@ class PolicyDetailScreen extends StatefulWidget {
 
 class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
   late Future<List<Policy>> _policiesFuture;
-  
+
   String? _expandedPolicyId;
-  List<Policy> _policies = []; 
+  List<Policy> _policies = [];
 
   @override
   void initState() {
@@ -100,11 +104,11 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: _deepBlue, 
-        foregroundColor: _whiteColor, 
+        backgroundColor: _deepBlue,
+        foregroundColor: _whiteColor,
         title: Text(
           widget.categoryTitle,
-          style: const TextStyle(color: _whiteColor), 
+          style: const TextStyle(color: _whiteColor),
         ),
       ),
       body: Container(
@@ -119,24 +123,32 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
           future: _policiesFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: _whiteColor));
+              return const Center(
+                child: CircularProgressIndicator(color: _whiteColor),
+              );
             } else if (snapshot.hasError) {
               return Center(
-                  child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Error loading policies: ${snapshot.error}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: _whiteColor),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Error loading policies: ${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: _whiteColor),
+                  ),
                 ),
-              ));
+              );
             } else if (snapshot.hasData) {
               _policies = snapshot.data!;
 
               if (_policies.isEmpty) {
-                return Center(child: Text('No policies found for ${widget.categoryTitle}.', style: const TextStyle(color: _whiteColor)));
+                return Center(
+                  child: Text(
+                    'No policies found for ${widget.categoryTitle}.',
+                    style: const TextStyle(color: _whiteColor),
+                  ),
+                );
               }
-              
+
               // No need for initial expansion logic when restoring standard behavior
 
               return ListView.builder(
@@ -144,17 +156,23 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
                 itemCount: _policies.length,
                 itemBuilder: (context, index) {
                   final policy = _policies[index];
-                  
+
                   return PolicyItemCard(
                     policy: policy,
                     // The item is expanded ONLY if its ID matches the stored expanded ID
                     isExpanded: policy.planId == _expandedPolicyId,
-                    onExpansionChanged: (isExpanded) => _setExpandedPolicyId(policy.planId, isExpanded),
+                    onExpansionChanged: (isExpanded) =>
+                        _setExpandedPolicyId(policy.planId, isExpanded),
                   );
                 },
               );
             } else {
-              return const Center(child: Text('Start fetching data...', style: TextStyle(color: _whiteColor)));
+              return const Center(
+                child: Text(
+                  'Start fetching data...',
+                  style: TextStyle(color: _whiteColor),
+                ),
+              );
             }
           },
         ),
@@ -168,11 +186,11 @@ class _PolicyDetailScreenState extends State<PolicyDetailScreen> {
 // -----------------------------------------------------------------------------
 class PolicyItemCard extends StatelessWidget {
   final Policy policy;
-  final bool isExpanded; 
-  final ValueChanged<bool> onExpansionChanged; 
+  final bool isExpanded;
+  final ValueChanged<bool> onExpansionChanged;
 
   const PolicyItemCard({
-    super.key, 
+    super.key,
     required this.policy,
     required this.isExpanded,
     required this.onExpansionChanged,
@@ -183,22 +201,29 @@ class PolicyItemCard extends StatelessWidget {
     return htmlText.replaceAll(exp, '').trim();
   }
 
-  Widget _buildItemActionButton(BuildContext context, {required String label, required IconData icon, required VoidCallback onPressed}) {
+  Widget _buildItemActionButton(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
     return Expanded(
       child: TextButton.icon(
         onPressed: onPressed,
         icon: Icon(icon, size: 18, color: _deepBlue),
         label: FittedBox(
           child: Text(
-            label, 
-            style: const TextStyle(fontSize: 12, color: _deepBlue, fontWeight: FontWeight.w600),
-          )
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: _deepBlue,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
@@ -207,40 +232,40 @@ class PolicyItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
-    final maturityContent = policy.onMaturity; 
+    final maturityContent = policy.onMaturity;
     final deathContent = policy.inCaseOfAssuredDeath;
 
     return Card(
-      elevation: 4, 
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16), 
-      ),
-      margin: const EdgeInsets.only(bottom: 16), 
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.only(bottom: 16),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
-        key: PageStorageKey(policy.planId), 
+        key: PageStorageKey(policy.planId),
         // ⭐️ CONTROLLED BY PARENT STATE:
         initiallyExpanded: isExpanded,
-        onExpansionChanged: onExpansionChanged, 
+        onExpansionChanged: onExpansionChanged,
 
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        
+        tilePadding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 8.0,
+        ),
+
         title: Text(
           policy.planName,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: Colors.black87, 
+            color: Colors.black87,
           ),
         ),
-      // ... inside PolicyItemCard's build method
 
-            subtitle: _buildImmediateDetail(
-              context, 
-              Icons.play_circle, // Icon changed to play_circle
-              'Plan ID: ${policy.planId}', // ⭐️ CORRECTION: Using string interpolation
-            ),
-
+        // ... inside PolicyItemCard's build method
+        subtitle: _buildImmediateDetail(
+          context,
+          Icons.play_circle, // Icon changed to play_circle
+          'Plan ID: ${policy.planId}', // ⭐️ CORRECTION: Using string interpolation
+        ),
 
         leading: Container(
           padding: const EdgeInsets.all(8),
@@ -249,69 +274,86 @@ class PolicyItemCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
-            Icons.verified_user_outlined, 
+            Icons.verified_user_outlined,
             color: primaryColor,
-            size: 24, 
+            size: 24,
           ),
         ),
-        
-        childrenPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+
+        childrenPadding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 10.0,
+        ),
         children: <Widget>[
-          const Divider(height: 1, thickness: 1, color: Colors.black12), 
+          const Divider(height: 1, thickness: 1, color: Colors.black12),
           const SizedBox(height: 15),
 
-          _buildDetailRow(context, Icons.fingerprint, 'Term:', policy.termOfThePolicy),
-          
+          _buildDetailRow(
+            context,
+            Icons.fingerprint,
+            'Term:',
+            policy.termOfThePolicy,
+          ),
+
           const Divider(height: 30, thickness: 0.5, color: Colors.grey),
-          
-          _buildSectionHeader(context, Icons.trending_up, 'Maturity Benefits'), 
+
+          _buildSectionHeader(context, Icons.trending_up, 'Maturity Benefits'),
           _buildDetailContent(context, maturityContent),
-          
+
           const Divider(height: 30, thickness: 0.5, color: Colors.grey),
-          
-          _buildSectionHeader(context, Icons.healing, 'Death Benefits'), 
+
+          _buildSectionHeader(context, Icons.healing, 'Death Benefits'),
           _buildDetailContent(context, deathContent),
 
-
-          _buildDetailRow(context, Icons.fingerprint, 'Supplementary Cover:', policy.SupplementaryCovers),
+          _buildDetailRow(
+            context,
+            Icons.fingerprint,
+            'Supplementary Cover:',
+            policy.SupplementaryCovers,
+          ),
 
           const SizedBox(height: 20),
-          
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildItemActionButton(
-                context, 
-                label: 'Prem Calculator', 
-                icon: Icons.calculate, 
-                  onPressed: () {
+                context,
+                label: 'Prem Calculator',
+                icon: Icons.calculate,
+                onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => PremiumCalculatorScreen(), // Pass 'policy' if needed
+                      builder: (context) =>
+                          PremiumCalculatorScreen(), // Pass 'policy' if needed
                     ),
                   );
                 },
               ),
 
-
-              
               _buildItemActionButton(
-                context, 
-                label: 'Apply For Policy', 
-                icon: Icons.assignment_turned_in, 
+                context,
+                label: 'Apply For Policy',
+                icon: Icons.assignment_turned_in,
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Apply for Policy ${policy.planName}')),
+                    SnackBar(
+                      content: Text('Apply for Policy ${policy.planName}'),
+                    ),
                   );
                 },
               ),
               _buildItemActionButton(
-                context, 
-                label: 'Brochure', 
-                icon: Icons.file_download, 
+                context,
+                label: 'Brochure',
+                icon: Icons.file_download,
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Downloading Brochure for ${policy.planName}')),
+                    SnackBar(
+                      content: Text(
+                        'Downloading Brochure for ${policy.planName}',
+                      ),
+                    ),
                   );
                 },
               ),
@@ -324,20 +366,31 @@ class PolicyItemCard extends StatelessWidget {
   }
 
   // --- Helper Widgets (Unchanged) ---
-  Widget _buildImmediateDetail(BuildContext context, IconData icon, String value) {
+  Widget _buildImmediateDetail(
+    BuildContext context,
+    IconData icon,
+    String value,
+  ) {
     return Row(
       children: [
         Icon(icon, size: 14, color: Colors.grey.shade600),
         const SizedBox(width: 4),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
         ),
       ],
     );
   }
 
-  Widget _buildDetailRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _buildDetailRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -347,16 +400,25 @@ class PolicyItemCard extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700, color: Colors.black54),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: Colors.black54,
+            ),
           ),
           const SizedBox(width: 5),
-          Expanded(child: Text(value, style: Theme.of(context).textTheme.bodyMedium)),
+          Expanded(
+            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          ),
         ],
       ),
     );
   }
-  
-  Widget _buildSectionHeader(BuildContext context, IconData icon, String title) {
+
+  Widget _buildSectionHeader(
+    BuildContext context,
+    IconData icon,
+    String title,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
@@ -378,12 +440,14 @@ class PolicyItemCard extends StatelessWidget {
   Widget _buildDetailContent(BuildContext context, String content) {
     final strippedContent = _stripHtmlTags(content);
     final isAvailable = strippedContent.isNotEmpty && strippedContent != 'N/A';
-    final displayContent = isAvailable ? content : 'Details not provided/available.';
-    
+    final displayContent = isAvailable
+        ? content
+        : 'Details not provided/available.';
+
     const baseTextStyle = TextStyle(
-      fontSize: 14, 
-      color: Colors.black87, 
-      height: 1.6, 
+      fontSize: 14,
+      color: Colors.black87,
+      height: 1.6,
     );
 
     return Container(
@@ -391,19 +455,18 @@ class PolicyItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           left: BorderSide(
-            color: isAvailable ? Theme.of(context).primaryColor.withOpacity(0.5) : Colors.grey.shade300, 
-            width: 4 
-          )
-        ), 
+            color: isAvailable
+                ? Theme.of(context).primaryColor.withOpacity(0.5)
+                : Colors.grey.shade300,
+            width: 4,
+          ),
+        ),
       ),
       child: SelectableRegion(
         selectionControls: MaterialTextSelectionControls(),
-        focusNode: FocusNode(), 
-        child: isAvailable 
-            ? HtmlWidget(
-                displayContent,
-                textStyle: baseTextStyle,
-              )
+        focusNode: FocusNode(),
+        child: isAvailable
+            ? HtmlWidget(displayContent, textStyle: baseTextStyle)
             : Text(
                 displayContent,
                 style: baseTextStyle.copyWith(color: Colors.grey.shade600),
