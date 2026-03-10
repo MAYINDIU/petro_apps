@@ -4,6 +4,7 @@ import 'package:petro_app/Screens/Public/change_password_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:petro_app/Screens/login.dart';
+import 'package:petro_app/Screens/Station/QrScannerScreen.dart';
 
 // --- Constants (Colors and Paths) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -300,14 +301,14 @@ class _StationDashboardState extends State<StationDashboard> {
   }
 
   void _onItemTapped(String title) {
-    if (Scaffold.of(context).isDrawerOpen) {
-      Navigator.pop(context);
-    }
     Widget destination;
 
-    // All items will navigate to a placeholder screen for now.
-    destination = _buildPlaceholderScreen(title);
-
+    if (title == 'Scan Driver') {
+      destination = const QrScannerScreen();
+    } else {
+      // All items will navigate to a placeholder screen for now.
+      destination = _buildPlaceholderScreen(title);
+    }
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => destination),

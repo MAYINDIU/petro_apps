@@ -113,7 +113,7 @@ class RegisterPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       const Text(
-                        "Register as a new Driver or Station",
+                        "Register as a new Bus Owner or Station Driver",
                         style: TextStyle(fontSize: 16, color: kHintColor),
                       ),
                       const SizedBox(height: 20),
@@ -141,7 +141,7 @@ class RegisterPage extends StatelessWidget {
                             fontSize: 15,
                           ),
                           tabs: const [
-                            Tab(text: 'Driver'),
+                            Tab(text: 'Bus Owner'),
                             Tab(text: 'Station'),
                           ],
                         ),
@@ -155,7 +155,7 @@ class RegisterPage extends StatelessWidget {
                         child: TabBarView(
                           children: [
                             _GenericRegistrationForm(
-                              role: 'driver',
+                              role: 'bus_owner',
                               onSuccess: () => _navigateToLogin(context),
                             ),
                             _GenericRegistrationForm(
@@ -459,7 +459,8 @@ class _GenericRegistrationFormState extends State<_GenericRegistrationForm> {
 
             const SizedBox(height: 30),
             _buildActionButton(
-              text: 'REGISTER AS ${widget.role.toUpperCase()}',
+              text:
+                  'REGISTER AS ${widget.role.toUpperCase().replaceAll('_', ' ')}',
               onPressed: _handleRegister,
               isLoading: _isLoading,
             ),

@@ -4,6 +4,8 @@ import 'package:petro_app/Screens/Public/change_password_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:petro_app/Screens/login.dart';
+import 'package:petro_app/Screens/Driver/DriverProfileScreen.dart';
+import 'package:petro_app/Screens/Driver/DriverQrCodeScreen.dart';
 
 // --- Constants (Colors and Paths) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -387,13 +389,15 @@ class _DriverDashboardState extends State<DriverDashboard> {
   }
 
   void _onItemTapped(String title) {
-    if (Scaffold.of(context).isDrawerOpen) {
-      Navigator.pop(context);
-    }
     Widget destination;
 
-    // All items will navigate to a placeholder screen for now.
-    destination = _buildPlaceholderScreen(title);
+    if (title == 'QR CODE') {
+      destination = const DriverQrCodeScreen();
+    } else if (title == 'My Profile') {
+      destination = const DriverProfileScreen();
+    } else {
+      destination = _buildPlaceholderScreen(title);
+    }
 
     Navigator.push(
       context,
@@ -543,7 +547,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     ),
                     onTap: () {
                       Navigator.pop(context);
-                      _onItemTapped('My Profile');
+                      _onItemTapped(
+                        'My Profile',
+                      ); // This will now navigate to DriverProfileScreen
                     },
                   ),
                   ListTile(

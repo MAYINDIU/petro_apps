@@ -104,6 +104,83 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getDriverProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token == null || token.isEmpty) {
+      return {
+        "success": false,
+        "message": "Authentication error: Token not found.",
+      };
+    }
+
+    const String profileUrl =
+        "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/driver/me";
+
+    try {
+      final response = await http.get(
+        Uri.parse(profileUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return responseBody;
+      } else {
+        return {
+          "success": false,
+          "message":
+              responseBody['message'] ?? "Failed to load driver profile.",
+        };
+      }
+    } catch (e) {
+      return {"success": false, "message": "Network error: ${e.toString()}"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getDriverQrCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token == null || token.isEmpty) {
+      return {
+        "success": false,
+        "message": "Authentication error: Token not found.",
+      };
+    }
+
+    const String qrCodeUrl =
+        "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/driver/qr";
+
+    try {
+      final response = await http.get(
+        Uri.parse(qrCodeUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return responseBody;
+      } else {
+        return {
+          "success": false,
+          "message": responseBody['message'] ?? "Failed to load QR code.",
+        };
+      }
+    } catch (e) {
+      return {"success": false, "message": "Network error: ${e.toString()}"};
+    }
+  }
+
   Future<Map<String, dynamic>> changeAgentPassword(
     String oldPassword,
     String newPassword,
