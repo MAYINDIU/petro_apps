@@ -11,8 +11,8 @@ class DriverQrCodeScreen extends StatefulWidget {
 
 class _DriverQrCodeScreenState extends State<DriverQrCodeScreen> {
   final ApiService _apiService = ApiService();
-  String? _qrPayload;
   String? _errorMessage;
+  Map<String, dynamic>? _qrData;
   bool _isLoading = true;
 
   @override
@@ -31,9 +31,9 @@ class _DriverQrCodeScreenState extends State<DriverQrCodeScreen> {
       if (mounted) {
         setState(() {
           if (response['success'] == true && response['data'] != null) {
-            _qrPayload = response['data']['qr_payload'];
+            _qrData = response['data'];
           } else {
-            _errorMessage = response['message'] ?? 'Failed to load QR.';
+            _errorMessage = response['message'] ?? 'Failed to load QR Code.';
           }
           _isLoading = false;
         });
@@ -41,7 +41,7 @@ class _DriverQrCodeScreenState extends State<DriverQrCodeScreen> {
     } catch (e) {
       if (mounted)
         setState(() {
-          _errorMessage = 'Connection error.';
+          _errorMessage = 'Connection error. Please try again.';
           _isLoading = false;
         });
     }
@@ -71,63 +71,90 @@ class _DriverQrCodeScreenState extends State<DriverQrCodeScreen> {
   }
 
   Widget _buildContent() {
-    if (_errorMessage != null) return _buildErrorState();
+    if (_errorMessage != null) {
+      return _buildErrorState();
+    }
+    if (_qrData == null) {
+      return _buildErrorState(message: 'No QR data available.');
+    }
+
+    final qrPayload = _qrData!['qr_payload'] as String?;
+    final driver = _qrData!['driver'] as Map<String, dynamic>?;
+    final assignment = _qrData!['assignment'] as Map<String, dynamic>?;
+    final vehicle = assignment?['vehicle'] as Map<String, dynamic>?;
+    final wallet = _qrData!['wallet'] as Map<String, dynamic>?;
+
+    final driverName = driver?['name'] ?? 'Driver';
+    final plateNumber = vehicle?['plate_number'] ?? 'N/A';
+    final balance = wallet?['balance']?.toString() ?? '0';
+
+    if (qrPayload == null) {
+      return _buildErrorState(message: 'QR payload could not be generated.');
+    }
 
     return Column(
       children: [
         // Top section with visual context
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(20, 40, 20, 60),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
           decoration: BoxDecoration(
             color: kPrimaryDarkBlue,
             borderRadius: const BorderRadius.vertical(
               bottom: Radius.circular(40),
             ),
           ),
-          child: Column(
-            children: [
-              const Icon(
-                Icons.qr_code_scanner,
-                size: 50,
-                color: Colors.white70,
-              ),
-              const SizedBox(height: 15),
-              const Text(
-                "Your Digital Fuel Pass",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+          child: SafeArea(
+            child: Column(
+              children: [
+                Text(
+                  driverName,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const Text(
-                "Show this to the station attendant",
-                style: TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-            ],
+                const SizedBox(height: 5),
+                Text(
+                  plateNumber,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Show this to the station attendant",
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
           ),
         ),
 
         // QR Code Container
         Transform.translate(
-          offset: const Offset(0, -30),
+          offset: const Offset(0, -40),
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
-            padding: const EdgeInsets.all(30),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(25),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.08),
-                  blurRadius: 20,
+                  blurRadius: 15,
                   offset: const Offset(0, 10),
                 ),
               ],
             ),
             child: Column(
               children: [
+                // QR Code Image
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -135,26 +162,26 @@ class _DriverQrCodeScreenState extends State<DriverQrCodeScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: QrImageView(
-                    data: _qrPayload!,
+                    data: qrPayload,
                     version: QrVersions.auto,
-                    size: 220.0,
+                    size: 200.0,
                   ),
                 ),
-                const SizedBox(height: 25),
-                const Text(
-                  "Valid until current session ends",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
+
+                // Wallet Balance
+                _buildWalletInfo(balance),
+
+                const SizedBox(height: 20),
+
+                // Refresh Button
                 OutlinedButton.icon(
                   onPressed: _fetchQrCode,
                   icon: const Icon(Icons.refresh),
                   label: const Text("Refresh Code"),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: kPrimaryDarkBlue,
+                    side: BorderSide(color: kPrimaryDarkBlue.withOpacity(0.5)),
                   ),
                 ),
               ],
@@ -165,7 +192,38 @@ class _DriverQrCodeScreenState extends State<DriverQrCodeScreen> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildWalletInfo(String balance) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            "Available Balance",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: kTextColorDark,
+            ),
+          ),
+          Text(
+            "৳ $balance",
+            style: TextStyle(
+              color: kPrimaryDarkBlue,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState({String? message}) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

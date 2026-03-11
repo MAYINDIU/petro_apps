@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:petro_app/Screens/login.dart';
 import 'package:petro_app/Screens/Driver/DriverProfileScreen.dart';
+import 'package:petro_app/Screens/Driver/DriverTransactionHistoryScreen.dart';
+import 'package:petro_app/Screens/Driver/WalletSummaryScreen.dart';
 import 'package:petro_app/Screens/Driver/DriverQrCodeScreen.dart';
 
 // --- Constants (Colors and Paths) ---
@@ -94,25 +96,14 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
   Future<void> _fetchWalletSummary() async {
     if (_accessToken == null) return;
+    final ApiService apiService = ApiService();
     try {
-      final Uri url = Uri.parse(
-        "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/driver/wallet",
-      );
-      final response = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_accessToken',
-        },
-      );
+      final response = await apiService.getDriverWalletSummary();
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true && data['data'] != null) {
-          setState(() {
-            _walletData = data['data'];
-          });
-        }
+      if (response['success'] == true && response['data'] != null) {
+        setState(() {
+          _walletData = response['data'];
+        });
       }
     } catch (e) {
       debugPrint("Error fetching wallet summary: $e");
@@ -148,9 +139,17 @@ class _DriverDashboardState extends State<DriverDashboard> {
   // --- UI Component Helpers ---
 
   Widget _buildWalletCard() {
-    final double balance = (_walletData['balance'] is int)
-        ? (_walletData['balance'] as int).toDouble()
-        : (_walletData['balance'] as double? ?? 0.0);
+    final double balance = (_walletData['balance'] is num)
+        ? (_walletData['balance'] as num).toDouble()
+        : double.tryParse(_walletData['balance']?.toString() ?? '0') ?? 0.0;
+
+    final double spendToday = (_walletData['spend_today'] is num)
+        ? (_walletData['spend_today'] as num).toDouble()
+        : double.tryParse(_walletData['spend_today']?.toString() ?? '0') ?? 0.0;
+
+    final double spendWeek = (_walletData['spend_week'] is num)
+        ? (_walletData['spend_week'] as num).toDouble()
+        : double.tryParse(_walletData['spend_week']?.toString() ?? '0') ?? 0.0;
 
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 1),
@@ -299,7 +298,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     children: [
                       _buildMiniStat(
                         "Today",
-                        "৳ ${_walletData['spend_today']}",
+                        "৳ ${spendToday.toStringAsFixed(2)}",
                       ),
                       Container(
                         height: 30,
@@ -309,7 +308,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                       ),
                       _buildMiniStat(
                         "This Week",
-                        "৳ ${_walletData['spend_week']}",
+                        "৳ ${spendWeek.toStringAsFixed(2)}",
                       ),
                     ],
                   ),
@@ -395,6 +394,10 @@ class _DriverDashboardState extends State<DriverDashboard> {
       destination = const DriverQrCodeScreen();
     } else if (title == 'My Profile') {
       destination = const DriverProfileScreen();
+    } else if (title == 'Transaction History') {
+      destination = const DriverTransactionHistoryScreen();
+    } else if (title == 'Wallet Summary') {
+      destination = const WalletSummaryScreen();
     } else {
       destination = _buildPlaceholderScreen(title);
     }
@@ -577,7 +580,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     ),
                     onTap: () {
                       Navigator.pop(context);
-                      _onItemTapped('Wallet Summary');
+                      _onItemTapped(
+                        'Wallet Summary',
+                      ); // This will now navigate to WalletSummaryScreen
                     },
                   ),
                   ListTile(
@@ -703,32 +708,37 @@ class _DriverDashboardState extends State<DriverDashboard> {
           foregroundColor: kTextColorLight,
         ),
 
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: isLargeScreen
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    // Main Content (Takes up 65% of the width)
-                    Expanded(flex: 7, child: _buildMainContent(context)),
-                    const SizedBox(width: 20),
-                    // Right Sidebar (Takes up 35% of the width)
-                    Expanded(
-                      flex: 3,
-                      child: _buildRightSidebarContent(context),
-                    ),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    // Main Content for smaller screens
-                    _buildMainContent(context),
-                    const SizedBox(height: 25),
-                    // Right Sidebar content moved below the main content on small screens
-                    _buildRightSidebarContent(context),
-                  ],
-                ),
+        body: RefreshIndicator(
+          onRefresh: _loadAllData,
+          color: kPrimaryDarkBlue,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16.0),
+            child: isLargeScreen
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      // Main Content (Takes up 65% of the width)
+                      Expanded(flex: 7, child: _buildMainContent(context)),
+                      const SizedBox(width: 20),
+                      // Right Sidebar (Takes up 35% of the width)
+                      Expanded(
+                        flex: 3,
+                        child: _buildRightSidebarContent(context),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      // Main Content for smaller screens
+                      _buildMainContent(context),
+                      const SizedBox(height: 25),
+                      // Right Sidebar content moved below the main content on small screens
+                      _buildRightSidebarContent(context),
+                    ],
+                  ),
+          ),
         ),
       ),
     );

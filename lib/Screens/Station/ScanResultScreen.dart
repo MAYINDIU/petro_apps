@@ -56,9 +56,8 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
       final token = prefs.getString('accessToken');
 
       // Safely access driver_id to prevent null exception
-      final driverInfo =
-          widget.scanData['driver_info'] as Map<String, dynamic>?;
-      final driverId = driverInfo?['id'];
+      final driver = widget.scanData['driver'] as Map<String, dynamic>?;
+      final driverId = driver?['id'];
 
       if (driverId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -149,11 +148,14 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final driverInfo =
-        widget.scanData['driver_info'] as Map<String, dynamic>? ?? {};
-    final vehicleInfo =
-        widget.scanData['vehicle_info'] as Map<String, dynamic>? ?? {};
-    final balance = widget.scanData['balance']?.toString() ?? '0';
+    final driver = widget.scanData['driver'] as Map<String, dynamic>? ?? {};
+    final assignment = widget.scanData['assignment'] as Map<String, dynamic>?;
+    final vehicle = assignment?['vehicle'] as Map<String, dynamic>? ?? {};
+    final wallet = widget.scanData['wallet'] as Map<String, dynamic>?;
+    final balance =
+        widget.scanData['balance']?.toString() ??
+        wallet?['balance']?.toString() ??
+        '0';
 
     return Scaffold(
       appBar: AppBar(
@@ -171,11 +173,11 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                 padding: const EdgeInsets.all(12.0),
                 child: Column(
                   children: [
-                    _buildInfoRow(Icons.person, "Driver", driverInfo['name']),
+                    _buildInfoRow(Icons.person, "Driver", driver['name']),
                     _buildInfoRow(
                       Icons.directions_bus,
                       "Vehicle",
-                      vehicleInfo['registration_no'],
+                      vehicle['plate_number'],
                     ),
                     _buildInfoRow(
                       Icons.account_balance_wallet,

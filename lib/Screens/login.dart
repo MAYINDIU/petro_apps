@@ -181,6 +181,80 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getDriverTransactions({
+    String? fromDate,
+    String? toDate,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token == null || token.isEmpty) {
+      return {
+        "success": false,
+        "message": "Authentication error: Token not found.",
+      };
+    }
+
+    // Build the query parameters
+    final Map<String, String> queryParams = {};
+    if (fromDate != null && fromDate.isNotEmpty) {
+      queryParams['from'] = fromDate;
+    }
+    if (toDate != null && toDate.isNotEmpty) {
+      queryParams['to'] = toDate;
+    }
+
+    final uri = Uri.parse(
+      "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/driver/transactions",
+    ).replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+
+    try {
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+
+      return responseBody;
+    } catch (e) {
+      return {"success": false, "message": "Network error: ${e.toString()}"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getDriverWalletSummary() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token == null || token.isEmpty) {
+      return {
+        "success": false,
+        "message": "Authentication error: Token not found.",
+      };
+    }
+
+    const String walletUrl =
+        "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/driver/wallet";
+
+    try {
+      final response = await http.get(
+        Uri.parse(walletUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      final Map<String, dynamic> responseBody = json.decode(response.body);
+      return responseBody;
+    } catch (e) {
+      return {"success": false, "message": "Network error: ${e.toString()}"};
+    }
+  }
+
   Future<Map<String, dynamic>> changeAgentPassword(
     String oldPassword,
     String newPassword,
@@ -286,31 +360,31 @@ class AuthService {
   ) async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Handle nested 'user' object from new API response
+    // The response now contains a 'data' object with 'user' and 'token'.
     final user = data['user'] as Map<String, dynamic>?;
-    final token =
-        data['token'] as String? ?? data['accessToken'] as String? ?? '';
+    final token = data['token'] as String?;
 
-    final name =
-        user?['name'] ??
-        data['name'] ??
-        (role == 'driver' ? 'Driver' : 'Station');
-    final email = user?['email'] ?? data['email'] ?? '';
-    final phone = user?['phone'] ?? data['phone'] ?? '';
+    if (user != null && token != null) {
+      final name = user['name'] as String? ?? 'N/A';
+      final email = user['email'] as String? ?? 'N/A';
+      final phone = user['phone'] as String? ?? 'N/A';
+      // The role from the API is the source of truth.
+      final apiRole = user['role'] as String? ?? role;
 
-    // Store critical data
-    await prefs.setString('accessToken', token);
-    await prefs.setString('username', name);
-    await prefs.setString('email', email);
-    await prefs.setString('mobile', phone); // Dashboard uses 'mobile' key
+      // Store critical data
+      await prefs.setString('accessToken', token);
+      await prefs.setString('username', name);
+      await prefs.setString('email', email);
+      await prefs.setString('mobile', phone); // Dashboard uses 'mobile' key
 
-    // Map to existing dashboard logic
-    // driver -> USER, station -> AGENT
-    final apiRole = user?['role'] ?? role;
-    final userType = (apiRole == 'station') ? 'AGENT' : 'USER';
-    await prefs.setString('userType', userType);
+      // Map to existing dashboard logic: driver -> USER, station -> AGENT
+      final userType = (apiRole == 'station') ? 'AGENT' : 'USER';
+      await prefs.setString('userType', userType);
 
-    debugPrint("Login data saved successfully for role: $role");
+      debugPrint("Login data saved successfully for role: $apiRole");
+    } else {
+      debugPrint("Login data from API is incomplete. Cannot save session.");
+    }
   }
 
   static Future<void> logout() async {

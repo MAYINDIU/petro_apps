@@ -70,7 +70,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
 
   Widget _buildProfileContent() {
     final driver = _driverProfile!['driver'];
-    final wallet = _driverProfile!['wallet_balance'] ?? '0.00';
+    final assignment = _driverProfile!['assignment'];
+    final wallet = _driverProfile!['wallet_balance']?.toString() ?? '0.00';
 
     return SingleChildScrollView(
       child: Column(
@@ -133,7 +134,45 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                     "Account Status",
                     driver['status'],
                   ),
-                  const Divider(height: 40),
+                  if (assignment != null) ...[
+                    const Divider(height: 30, thickness: 1),
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 10.0),
+                      child: Text(
+                        "Assignment Details",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: kPrimaryDarkBlue,
+                        ),
+                      ),
+                    ),
+                    if (assignment['owner'] != null) ...[
+                      _infoTile(
+                        Icons.business_center_outlined,
+                        "Owner Name",
+                        assignment['owner']['name'] ?? 'N/A',
+                      ),
+                      _infoTile(
+                        Icons.support_agent,
+                        "Owner Contact",
+                        assignment['owner']['phone'] ?? 'N/A',
+                      ),
+                    ],
+                    if (assignment['vehicle'] != null) ...[
+                      _infoTile(
+                        Icons.directions_bus_outlined,
+                        "Vehicle Plate",
+                        assignment['vehicle']['plate_number'] ?? 'N/A',
+                      ),
+                      _infoTile(
+                        Icons.info_outline,
+                        "Vehicle Model",
+                        assignment['vehicle']['model'] ?? 'N/A',
+                      ),
+                    ],
+                  ],
+                  const Divider(height: 30),
                   _walletTile(wallet),
                 ],
               ),
