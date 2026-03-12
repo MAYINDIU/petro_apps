@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:petro_app/Screens/Station/StationDashboard.dart';
-import 'package:petro_app/Screens/forgot_password.dart';
 import 'package:http/http.dart' as http;
 import 'package:petro_app/Screens/Driver/DriverDashboard.dart';
 import 'package:petro_app/Screens/register.dart';
@@ -297,59 +296,6 @@ class ApiService {
       return {"success": false, "message": "Network error: ${e.toString()}"};
     }
   }
-
-  // --- Password Reset Flow ---
-  static const String _resetBaseUrl =
-      "https://nliuserapi.nextgenitltd.com/api/auth/password/reset";
-
-  Future<Map<String, dynamic>> requestPasswordResetOtp(String phone) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_resetBaseUrl/request'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({"phone": phone}),
-      );
-      return json.decode(response.body);
-    } catch (e) {
-      return {"success": false, "message": "Network error: ${e.toString()}"};
-    }
-  }
-
-  Future<Map<String, dynamic>> verifyPasswordResetOtp(
-    String phone,
-    String otp,
-  ) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_resetBaseUrl/verify'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({"phone": phone, "otp": otp}),
-      );
-      // The response body from a successful verification is expected to contain the reset token
-      return json.decode(response.body);
-    } catch (e) {
-      return {"success": false, "message": "Network error: ${e.toString()}"};
-    }
-  }
-
-  Future<Map<String, dynamic>> updatePassword(
-    String resetToken,
-    String password,
-  ) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_resetBaseUrl/update'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $resetToken',
-        },
-        body: json.encode({"password": password}),
-      );
-      return json.decode(response.body);
-    } catch (e) {
-      return {"success": false, "message": "Network error: ${e.toString()}"};
-    }
-  }
 }
 
 // --- Simple Auth Service for SharedPreferences (Local Storage) ---
@@ -411,7 +357,6 @@ class AuthenticationScreenState extends State<LoginPage>
   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
 
   // --- UI State Variables (Only Login related) ---
-  bool _isDriverLogin = true;
   bool _obscureLoginPass = true;
   bool _isLoading = false;
 
@@ -492,19 +437,22 @@ class AuthenticationScreenState extends State<LoginPage>
           response['data'] as Map<String, dynamic>?;
 
       if (isSuccess && data != null) {
-        final String role = _isDriverLogin ? 'driver' : 'station';
+        // Extract role from response data, defaulting to 'driver' if undefined
+        final user = data['user'] as Map<String, dynamic>?;
+        final String role = user?['role'] ?? 'driver';
+
         await AuthService.saveLoginData(data, role);
         _showSnackbar("Login successful! Redirecting...");
 
         // 3. Go to Customer Dashboard
         if (mounted) {
-          if (_isDriverLogin) {
+          if (role == 'station') {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const DriverDashboard()),
+              MaterialPageRoute(builder: (_) => const StationDashboard()),
             );
           } else {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const StationDashboard()),
+              MaterialPageRoute(builder: (_) => const DriverDashboard()),
             );
           }
         }
@@ -534,16 +482,6 @@ class AuthenticationScreenState extends State<LoginPage>
         ),
       );
     }
-  }
-
-  // --- Toggle Login Role ---
-  void _toggleLoginRole(bool isDriver) {
-    setState(() {
-      _isDriverLogin = isDriver;
-      _loginFormKey.currentState?.reset();
-      loginEmailCTRL.clear();
-      loginPasswordCTRL.clear();
-    });
   }
 
   @override
@@ -645,17 +583,10 @@ class AuthenticationScreenState extends State<LoginPage>
                 ),
               ),
               Text(
-                "Sign in as a ${_isDriverLogin ? 'Driver' : 'Station'}",
+                "Sign in to your account",
                 style: const TextStyle(fontSize: 14, color: kHintColor),
               ),
               const SizedBox(height: 24),
-
-              // Driver/Station Toggle Tabs
-              _buildRoleToggle(
-                isDriver: _isDriverLogin,
-                onToggle: _toggleLoginRole,
-              ),
-              const SizedBox(height: 20),
 
               // Email Field
               _buildCustomTextField(
@@ -690,39 +621,20 @@ class AuthenticationScreenState extends State<LoginPage>
               ),
               const SizedBox(height: 8),
 
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    // Navigate to the Forgot Password screen
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ForgotPasswordScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "Forgot Password?",
-                    style: TextStyle(
-                      color: kAccentBlue,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Login Button (Calls the API logic)
               _buildActionButton(
-                text: "LOGIN AS ${_isDriverLogin ? 'DRIVER' : 'STATION'}",
+                text: "LOGIN",
                 onPressed: _handleLogin,
                 isLoading: _isLoading,
               ),
               const SizedBox(height: 16),
 
               // Register Link (Now navigates to RegisterPage)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text(
                     "Don't have account?",
@@ -748,66 +660,6 @@ class AuthenticationScreenState extends State<LoginPage>
                 ],
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // --- Helper Widget for Role Toggle ---
-  Widget _buildRoleToggle({
-    required bool isDriver,
-    required Function(bool) onToggle,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(10),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildToggleItem(
-              text: "Driver",
-              isSelected: isDriver,
-              onTap: () => onToggle(true),
-            ),
-          ),
-          Expanded(
-            child: _buildToggleItem(
-              text: "Station",
-              isSelected: !isDriver,
-              onTap: () => onToggle(false),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper for individual toggle item
-  Widget _buildToggleItem({
-    required String text,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? kPrimaryDarkBlue : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isSelected ? Colors.white : kTextColorDark.withOpacity(0.7),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            fontSize: 13,
           ),
         ),
       ),
