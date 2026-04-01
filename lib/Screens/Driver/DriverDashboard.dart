@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:petro_app/Screens/Public/change_password_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:petro_app/Screens/login.dart';
@@ -633,12 +632,12 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     ),
                     onTap: () {
                       Navigator.pop(context); // Close drawer
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ChangePasswordScreen(),
-                        ),
-                      );
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => const ChangePasswordScreen(),
+                      //   ),
+                      // );
                       debugPrint('Change Password Tapped');
                     },
                   ),

@@ -323,9 +323,8 @@ class AuthService {
       await prefs.setString('email', email);
       await prefs.setString('mobile', phone); // Dashboard uses 'mobile' key
 
-      // Map to existing dashboard logic: driver -> USER, station -> AGENT
-      final userType = (apiRole == 'station') ? 'AGENT' : 'USER';
-      await prefs.setString('userType', userType);
+      // Store the role directly from API: station or driver
+      await prefs.setString('userType', apiRole);
 
       debugPrint("Login data saved successfully for role: $apiRole");
     } else {

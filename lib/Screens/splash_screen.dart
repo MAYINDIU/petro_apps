@@ -5,10 +5,6 @@ import 'package:petro_app/Screens/Station/StationDashboard.dart';
 import 'package:petro_app/Screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Screen Imports
-// ignore: depend_on_referenced_packages
-import 'package:petro_app/Screens/Public/dashboard.dart';
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
