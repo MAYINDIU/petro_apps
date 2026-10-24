@@ -1,5 +1,6 @@
+import 'package:petro_app/api_config.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:petro_app/Screens/login.dart';
@@ -7,27 +8,19 @@ import 'package:petro_app/Screens/Driver/DriverProfileScreen.dart';
 import 'package:petro_app/Screens/Driver/DriverTransactionHistoryScreen.dart';
 import 'package:petro_app/Screens/Driver/WalletSummaryScreen.dart';
 import 'package:petro_app/Screens/Driver/DriverQrCodeScreen.dart';
+import 'package:petro_app/widgets/dashboard_widgets.dart';
+import 'package:petro_app/widgets/fuel_animations.dart';
 
 // --- Constants (Colors and Paths) ---
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
 const Color kAccentBlue = Color(0xFF3B82F6);
-const Color kScaffoldBackground = Color(0xFFF3F4F6);
+const Color kScaffoldBackground = Color(0xFFF1F5F9);
 const Color kCardBackground = Color(0xFFFFFFFF);
 const Color kTextColorLight = Color(0xFFF9FAFB);
 const Color kTextColorDark = Color(0xFF1F2937);
 const Color kHintColor = Color(0xFF9CA3AF);
-const String _assetProfileIconPath =
-    'assets/icons/icon.png'; // Placeholder path
-// --- Supporting Models and Placeholder Screens ---
 
-class DashboardIconData {
-  final String iconPath;
-  final String title;
-  const DashboardIconData(this.iconPath, this.title);
-}
-// -------------------------------------------------------------------------
-// 🔥 CustomerDashboard State Implementation
-// -------------------------------------------------------------------------
+final NumberFormat _money = NumberFormat('#,##0.00');
 
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
@@ -36,13 +29,14 @@ class DriverDashboard extends StatefulWidget {
 }
 
 class _DriverDashboardState extends State<DriverDashboard> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   // --- State Variables ---
   String _userName = 'Loading User...';
   String _userEmail = 'loading@app.com';
   String _userMobile = '00000000000';
   String _userRole = '';
   String? _accessToken;
-  double _currentBalance = 0.00;
   bool _isLoading = true;
   Map<String, dynamic> _walletData = {
     "balance": 0,
@@ -51,13 +45,37 @@ class _DriverDashboardState extends State<DriverDashboard> {
   };
 
   // --- Dashboard Items List ---
-  final List<DashboardIconData> dashboardItems = const [
-    DashboardIconData('assets/icons/prfl.png', 'My Profile'),
-    DashboardIconData('assets/icons/qr.png', 'QR CODE'),
-    DashboardIconData('assets/icons/wallet.png', 'Wallet Summary'),
-    DashboardIconData('assets/icons/tnlist.png', 'Transaction History'),
-    DashboardIconData('assets/icons/search.png', 'Transaction By Id'),
-    DashboardIconData('assets/icons/upload.png', 'Driver Transaction Meter'),
+  static const List<DashboardServiceItem> dashboardItems = [
+    DashboardServiceItem(
+      Icons.person_rounded,
+      'My Profile',
+      'Your account details',
+      Color(0xFF3B82F6),
+    ),
+    DashboardServiceItem(
+      Icons.account_balance_wallet_rounded,
+      'Wallet Summary',
+      'Balance & spending',
+      Color(0xFF10B981),
+    ),
+    DashboardServiceItem(
+      Icons.receipt_long_rounded,
+      'Transaction History',
+      'All fuel payments',
+      Color(0xFF8B5CF6),
+    ),
+    DashboardServiceItem(
+      Icons.manage_search_rounded,
+      'Transaction By Id',
+      'Find a payment',
+      Color(0xFF0EA5E9),
+    ),
+    DashboardServiceItem(
+      Icons.speed_rounded,
+      'Driver Transaction Meter',
+      'Meter readings',
+      Color(0xFFF97316),
+    ),
   ];
 
   @override
@@ -88,7 +106,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
       _userMobile = prefs.getString('mobile') ?? '00000000000';
       _userRole = prefs.getString('userType') ?? '';
       _accessToken = tokenFromStorage;
-      _currentBalance = prefs.getDouble('current_balance') ?? 0.00;
     });
     debugPrint('Access Token Retrieved: $_accessToken');
   }
@@ -116,9 +133,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
     final String? token = prefs.getString('accessToken');
     if (token != null) {
       try {
-        final Uri url = Uri.parse(
-          "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/auth/logout",
-        );
+        final Uri url = Uri.parse(ApiConfig.logout);
         await http.post(
           url,
           headers: {
@@ -135,256 +150,32 @@ class _DriverDashboardState extends State<DriverDashboard> {
     debugPrint('User session data cleared successfully.');
   }
 
-  // --- UI Component Helpers ---
-
-  Widget _buildWalletCard() {
-    final double balance = (_walletData['balance'] is num)
-        ? (_walletData['balance'] as num).toDouble()
-        : double.tryParse(_walletData['balance']?.toString() ?? '0') ?? 0.0;
-
-    final double spendToday = (_walletData['spend_today'] is num)
-        ? (_walletData['spend_today'] as num).toDouble()
-        : double.tryParse(_walletData['spend_today']?.toString() ?? '0') ?? 0.0;
-
-    final double spendWeek = (_walletData['spend_week'] is num)
-        ? (_walletData['spend_week'] as num).toDouble()
-        : double.tryParse(_walletData['spend_week']?.toString() ?? '0') ?? 0.0;
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 800),
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: Opacity(opacity: value, child: child),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 25),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: kPrimaryDarkBlue.withOpacity(0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // Decorative Background Shapes
-            Positioned(
-              top: -30,
-              right: -30,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -50,
-              left: -20,
-              child: Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Colors.white,
-                        child: ClipOval(
-                          child: Image.asset(
-                            _assetProfileIconPath,
-                            height: 40,
-                            width: 40,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Text(
-                              _userName.isNotEmpty ? _userName[0] : 'U',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                color: kPrimaryDarkBlue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _userName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _userRole == 'USER' ? 'Driver' : _userRole,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(color: Colors.white.withOpacity(0.3)),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Current Balance",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Icon(
-                        Icons.account_balance_wallet,
-                        color: Colors.white.withOpacity(0.8),
-                      ),
-                    ],
-                  ),
-
-                  // Animated Counter
-                  TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0, end: balance),
-                    duration: const Duration(seconds: 2),
-                    curve: Curves.easeOutExpo,
-                    builder: (context, value, child) {
-                      return Text(
-                        "৳ ${value.toStringAsFixed(2)}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 5),
-                  Row(
-                    children: [
-                      _buildMiniStat(
-                        "Today",
-                        "৳ ${spendToday.toStringAsFixed(2)}",
-                      ),
-                      Container(
-                        height: 30,
-                        width: 1,
-                        color: Colors.white30,
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                      ),
-                      _buildMiniStat(
-                        "This Week",
-                        "৳ ${spendWeek.toStringAsFixed(2)}",
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+  Future<void> _logout() async {
+    await _clearUserSession();
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Logging out...')));
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (Route<dynamic> route) => false,
     );
   }
 
-  Widget _buildMiniStat(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 13),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
+  double _walletValue(String key) {
+    final value = _walletData[key];
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '0') ?? 0.0;
   }
 
-  // 3. Static Right Sidebar Content (unchanged)
-  Widget _buildRightSidebarContent(BuildContext context) {
-    return Container();
+  String get _roleLabel {
+    final role = _userRole.toLowerCase();
+    if (role.isEmpty || role == 'user' || role == 'driver') return 'Driver';
+    if (role == 'bus_owner') return 'Bus Owner';
+    return _userRole;
   }
 
-  // 4. Main Dashboard Content (unchanged)
-  Widget _buildMainContent(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        _buildWalletCard(),
-
-        const Text(
-          'Services',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: kTextColorDark,
-          ),
-        ),
-        const SizedBox(height: 16),
-        GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.0,
-          ),
-          itemCount: dashboardItems.length,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            final item = dashboardItems[index];
-            return _AnimatedGridItem(
-              item: item,
-              index: index,
-              onTap: () => _onItemTapped(item.title),
-            );
-          },
-        ),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
+  // --- Navigation ---
 
   void _onItemTapped(String title) {
     Widget destination;
@@ -398,7 +189,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
     } else if (title == 'Wallet Summary') {
       destination = const WalletSummaryScreen();
     } else {
-      destination = _buildPlaceholderScreen(title);
+      destination = ComingSoonScreen(title: title);
     }
 
     Navigator.push(
@@ -407,422 +198,390 @@ class _DriverDashboardState extends State<DriverDashboard> {
     );
   }
 
-  Widget _buildPlaceholderScreen(String title) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text(
-            title.contains('Payment Gateway')
-                ? 'Initiating Secure Payment with $title. \n(This is where the SSLCommerz web view would load.)'
-                : 'Navigation for "$title" is not yet implemented.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16, color: kPrimaryDarkBlue),
+  // --- UI: Header ---
+
+  Widget _buildHeader() {
+    return Stack(
+      children: [
+        const DashboardHeaderBackground(
+          watermark: Icons.local_shipping_rounded,
+        ),
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    GlassIconButton(
+                      icon: Icons.menu_rounded,
+                      onTap: () => _scaffoldKey.currentState?.openDrawer(),
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      Icons.local_gas_station_rounded,
+                      color: kFuelAmber,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'WMS CWallet',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Spacer(),
+                    GlassIconButton(icon: Icons.logout_rounded, onTap: _logout),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  '${timeOfDayGreeting()},',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _userName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _buildWalletCard(),
+              ],
+            ),
           ),
         ),
+      ],
+    );
+  }
+
+  // --- UI: Credit-card style fuel wallet ---
+
+  Widget _buildWalletCard() {
+    final balance = _walletValue('balance');
+    return FuelPaymentCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'FUEL WALLET',
+                style: TextStyle(
+                  color: kFuelAmber,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.contactless_rounded,
+                color: Colors.white.withOpacity(0.85),
+                size: 26,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const CardChip(),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Available balance',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.65),
+                        fontSize: 12,
+                      ),
+                    ),
+                    // Animated counter
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0, end: balance),
+                      duration: const Duration(seconds: 2),
+                      curve: Curves.easeOutExpo,
+                      builder: (context, value, child) {
+                        return FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "৳ ${_money.format(value)}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _userName.toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _userMobile,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 12,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [kFuelAmber, kFuelOrange],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.verified_rounded,
+                      size: 13,
+                      color: kFuelDeepNavy,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _roleLabel,
+                      style: const TextStyle(
+                        color: kFuelDeepNavy,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  // 5. The Professional Dark Blue Navigation Drawer (unchanged)
+  // --- UI: Spending tiles ---
 
-  Widget _buildLeftDrawer(BuildContext context) {
-    // Defines the content for the account details (NID/Mobile)
-    final Widget accountEmailWidget = Column(
-      crossAxisAlignment: CrossAxisAlignment.center, // Align details to center
-      children: [
-        Text(
-          'Email: $_userEmail',
-          style: TextStyle(
-            color: kTextColorLight.withOpacity(0.8),
-            fontSize: 13,
+  Widget _buildSpendTile({
+    required IconData icon,
+    required String label,
+    required double amount,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
-        ),
-        Text(
-          'Mobile: $_userMobile',
-          style: TextStyle(
-            color: kTextColorLight.withOpacity(0.8),
-            fontSize: 13,
-          ),
-        ),
-        if (_userRole.isNotEmpty)
-          Text(
-            'Role: ${_userRole == 'USER' ? 'Driver' : (_userRole == 'AGENT' ? 'Station' : _userRole)}',
-            style: TextStyle(
-              color: kTextColorLight.withOpacity(0.8),
-              fontSize: 13,
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
             ),
+            child: Icon(icon, color: color, size: 22),
           ),
-      ],
-    );
-
-    return Drawer(
-      backgroundColor: kCardBackground,
-      child: Column(
-        // Main Column inside the Drawer
-        // No need for crossAxisAlignment here, as the Card/Container below is full width
-        children: <Widget>[
-          // 🛑 FIX: Custom Header replaces UserAccountsDrawerHeader for centering 🛑
-          Card(
-            elevation: 8,
-            margin: EdgeInsets.zero,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                bottomRight: Radius.circular(20),
-                bottomLeft: Radius.circular(20),
-              ),
-            ),
-            child: Container(
-              padding: const EdgeInsets.only(
-                top: 40,
-                bottom: 25,
-                left: 20,
-                right: 20,
-              ),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [kPrimaryDarkBlue, kPrimaryDarkBlue.withOpacity(0.8)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 12, color: kHintColor),
                 ),
-              ),
-              child: Column(
-                // 🔑 Centers all content (picture, name, email) horizontally
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // 1. Profile Picture (Centered with requested 8.0 Bottom Padding)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: CircleAvatar(
-                      radius: 25,
-                      backgroundColor: kTextColorLight,
-                      child: ClipOval(
-                        child: Image.asset(
-                          _assetProfileIconPath,
-                          height: 70,
-                          width: 70,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Text(
-                            _userName.isNotEmpty ? _userName[0] : 'U',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              color: kPrimaryDarkBlue,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                const SizedBox(height: 2),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0, end: amount),
+                  duration: const Duration(milliseconds: 1500),
+                  curve: Curves.easeOutExpo,
+                  builder: (context, value, _) => FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "৳ ${_money.format(value)}",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: kTextColorDark,
                       ),
                     ),
                   ),
-
-                  // 2. Account Name (Centered)
-                  Text(
-                    _userName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: kTextColorLight,
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-
-                  // 3. Account Email/Details (Centered)
-                  accountEmailWidget,
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-
-          // --- Scrollable Content Section ---
-          Expanded(
-            child: SingleChildScrollView(
-              // Makes the content scrollable
-              child: Column(
-                children: <Widget>[
-                  ListTile(
-                    leading: const Icon(Icons.person, color: kPrimaryDarkBlue),
-                    title: const Text(
-                      'My Profile',
-                      style: TextStyle(color: kTextColorDark),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _onItemTapped(
-                        'My Profile',
-                      ); // This will now navigate to DriverProfileScreen
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.qr_code_2,
-                      color: kPrimaryDarkBlue,
-                    ),
-                    title: const Text(
-                      'QR CODE',
-                      style: TextStyle(color: kTextColorDark),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _onItemTapped('QR CODE');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.account_balance_wallet,
-                      color: kPrimaryDarkBlue,
-                    ),
-                    title: const Text(
-                      'Wallet Summary',
-                      style: TextStyle(color: kTextColorDark),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _onItemTapped(
-                        'Wallet Summary',
-                      ); // This will now navigate to WalletSummaryScreen
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.receipt_long,
-                      color: kPrimaryDarkBlue,
-                    ),
-                    title: const Text(
-                      'Transaction History',
-                      style: TextStyle(color: kTextColorDark),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _onItemTapped('Transaction History');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.manage_search,
-                      color: kPrimaryDarkBlue,
-                    ),
-                    title: const Text(
-                      'Transaction By Id',
-                      style: TextStyle(color: kTextColorDark),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _onItemTapped('Transaction By Id');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.speed, color: kPrimaryDarkBlue),
-                    title: const Text(
-                      'Driver Transaction Meter',
-                      style: TextStyle(color: kTextColorDark),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _onItemTapped('Driver Transaction Meter');
-                    },
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.lock, color: kPrimaryDarkBlue),
-                    title: const Text(
-                      'Change Password',
-                      style: TextStyle(color: kTextColorDark),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context); // Close drawer
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => const ChangePasswordScreen(),
-                      //   ),
-                      // );
-                      debugPrint('Change Password Tapped');
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // --- Logout (Fixed at the Bottom) ---
-          const Divider(height: 1),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text(
-              'Logout',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
-            ),
-            onTap: () async {
-              Navigator.pop(context);
-              await _clearUserSession();
-              if (context.mounted) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Logging out...')));
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                  (Route<dynamic> route) => false,
-                );
-              }
-            },
-          ),
-          const SafeArea(bottom: true, top: false, child: SizedBox(height: 0)),
         ],
       ),
+    );
+  }
+
+  // --- UI: Main content ---
+
+  Widget _buildMainContent(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _buildHeader(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSpendTile(
+                      icon: Icons.today_rounded,
+                      label: 'Spent today',
+                      amount: _walletValue('spend_today'),
+                      color: kFuelOrange,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildSpendTile(
+                      icon: Icons.date_range_rounded,
+                      label: 'This week',
+                      amount: _walletValue('spend_week'),
+                      color: const Color(0xFF8B5CF6),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              PulsingActionCard(
+                icon: Icons.qr_code_2_rounded,
+                title: 'Show My QR Code',
+                subtitle: 'Let the station scan it to pay for fuel',
+                onTap: () => _onItemTapped('QR CODE'),
+              ),
+              const SizedBox(height: 24),
+              const DashboardSectionTitle('Services'),
+              DashboardServiceGrid(
+                items: dashboardItems,
+                onTap: (item) => _onItemTapped(item.title),
+              ),
+              const SizedBox(height: 24),
+              const DashboardSectionTitle('How to pay'),
+              const HowItWorksStrip(
+                steps: [
+                  (Icons.qr_code_2_rounded, 'Show QR'),
+                  (Icons.local_gas_station_rounded, 'Station scans'),
+                  (Icons.task_alt_rounded, 'Paid'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   // --- Main Build Method ---
   @override
   Widget build(BuildContext context) {
-    final isLargeScreen = MediaQuery.of(context).size.width > 900;
-
     if (_isLoading) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: kScaffoldBackground,
         body: Center(child: CircularProgressIndicator(color: kPrimaryDarkBlue)),
       );
     }
 
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: kScaffoldBackground,
-        drawer: isLargeScreen ? null : _buildLeftDrawer(context),
-
-        // 🛑 FIX: Corrected the broken AppBar syntax 🛑
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text(
-            'Welcome, $_userName',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 0.5,
+        drawer: DashboardDrawer(
+          name: _userName,
+          email: _userEmail,
+          mobile: _userMobile,
+          roleLabel: _roleLabel,
+          items: [
+            (
+              Icons.qr_code_2_rounded,
+              'QR Code',
+              () => _onItemTapped('QR CODE'),
             ),
-          ),
-          backgroundColor: kPrimaryDarkBlue,
-          foregroundColor: kTextColorLight,
+            for (final item in dashboardItems)
+              (item.icon, item.title, () => _onItemTapped(item.title)),
+          ],
+          footerItems: [
+            (
+              Icons.lock_outline_rounded,
+              'Change Password',
+              () => debugPrint('Change Password Tapped'),
+            ),
+          ],
+          onLogout: _logout,
         ),
-
         body: RefreshIndicator(
           onRefresh: _loadAllData,
           color: kPrimaryDarkBlue,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16.0),
-            child: isLargeScreen
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      // Main Content (Takes up 65% of the width)
-                      Expanded(flex: 7, child: _buildMainContent(context)),
-                      const SizedBox(width: 20),
-                      // Right Sidebar (Takes up 35% of the width)
-                      Expanded(
-                        flex: 3,
-                        child: _buildRightSidebarContent(context),
-                      ),
-                    ],
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      // Main Content for smaller screens
-                      _buildMainContent(context),
-                      const SizedBox(height: 25),
-                      // Right Sidebar content moved below the main content on small screens
-                      _buildRightSidebarContent(context),
-                    ],
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AnimatedGridItem extends StatefulWidget {
-  final DashboardIconData item;
-  final int index;
-  final VoidCallback onTap;
-
-  const _AnimatedGridItem({
-    required this.item,
-    required this.index,
-    required this.onTap,
-  });
-
-  @override
-  _AnimatedGridItemState createState() => _AnimatedGridItemState();
-}
-
-class _AnimatedGridItemState extends State<_AnimatedGridItem> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: 1),
-      duration: Duration(milliseconds: 500 + (widget.index * 100)),
-      curve: Curves.easeOutBack,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
-        );
-      },
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: _isHovered ? kPrimaryDarkBlue : Colors.transparent,
-              width: 0.4,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: _isHovered
-                    ? kPrimaryDarkBlue.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.08),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: widget.onTap,
-              borderRadius: BorderRadius.circular(10),
-              splashColor: kPrimaryDarkBlue.withOpacity(0.05),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(widget.item.iconPath, width: 40, height: 40),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.item.title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: kTextColorDark,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: _buildMainContent(context),
               ),
             ),
           ),

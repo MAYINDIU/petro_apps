@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:petro_app/Screens/login.dart'; // ApiService, kPrimaryDarkBlue, kScaffoldBackground ইত্যাদির জন্য
+import 'package:petro_app/Screens/Driver/DriverQrCodeScreen.dart';
+import 'package:petro_app/Screens/Driver/DriverTransactionHistoryScreen.dart';
+import 'package:petro_app/widgets/dashboard_widgets.dart';
+import 'package:petro_app/widgets/fuel_animations.dart';
+import 'package:petro_app/widgets/page_widgets.dart';
 
 class WalletSummaryScreen extends StatefulWidget {
   const WalletSummaryScreen({super.key});
@@ -15,6 +20,8 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  final NumberFormat _money = NumberFormat('#,##0.00');
+
   @override
   void initState() {
     super.initState();
@@ -24,8 +31,8 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
   Future<void> _fetchWalletSummary() async {
     if (!mounted) return;
     setState(() {
-      _isLoading = true;
       _errorMessage = null;
+      if (_walletData == null) _isLoading = true;
     });
 
     try {
@@ -50,179 +57,226 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
     }
   }
 
+  double _value(String key) =>
+      double.tryParse(_walletData?[key]?.toString() ?? '') ?? 0.0;
+
   @override
   Widget build(BuildContext context) {
+    final hasData = !_isLoading && _errorMessage == null && _walletData != null;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FA), // Modern off-white background
-      appBar: AppBar(
-        title: const Text(
-          'Wallet Summary',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        backgroundColor: kPrimaryDarkBlue,
-        foregroundColor: Colors.white,
-        centerTitle: true,
-        elevation: 0,
-      ),
+      backgroundColor: kPageBackground,
       body: RefreshIndicator(
         onRefresh: _fetchWalletSummary,
         color: kPrimaryDarkBlue,
-        child: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: kPrimaryDarkBlue),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: FuelPageHeader(
+                title: 'Wallet Summary',
+                subtitle: 'Your balance and fuel spending',
+                watermark: Icons.account_balance_wallet_rounded,
+                child: hasData ? _buildBalanceCard(_value('balance')) : null,
+              ),
+            ),
+            if (_isLoading)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: FuelLoadingView(message: 'Loading wallet...'),
               )
-            : _errorMessage != null
-            ? _buildErrorView()
-            : _buildEnhancedContent(),
+            else if (!hasData)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: FuelStateView.error(
+                  message: _errorMessage ?? 'No data found',
+                  onRetry: _fetchWalletSummary,
+                ),
+              )
+            else
+              SliverToBoxAdapter(child: _buildEnhancedContent()),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEnhancedContent() {
-    if (_walletData == null) return _buildErrorView(message: "No data found");
+    final double spendToday = _value('spend_today');
+    final double spendWeek = _value('spend_week');
+    final double todayShare = spendWeek > 0
+        ? (spendToday / spendWeek).clamp(0.0, 1.0)
+        : 0.0;
 
-    // JSON থেকে ডাটা পার্স করা হচ্ছে (৳400, ৳100, ৳100)
-    final double balance =
-        double.tryParse(_walletData!['balance'].toString()) ?? 0.0;
-    final double spendToday =
-        double.tryParse(_walletData!['spend_today'].toString()) ?? 0.0;
-    final double spendWeek =
-        double.tryParse(_walletData!['spend_week'].toString()) ?? 0.0;
-
-    final currencyFormat = NumberFormat.currency(
-      locale: 'en_BD',
-      symbol: '৳ ',
-      decimalDigits: 2,
-    );
-
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // প্রিমিয়াম ব্যালেন্স কার্ড
-          _buildBalanceCard(currencyFormat.format(balance)),
-
-          const SizedBox(height: 30),
-          const Text(
-            "Spending Insights",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 15),
-
-          // আজকের খরচ এবং সাপ্তাহিক খরচ পাশাপাশি
+          const DashboardSectionTitle('Spending insights'),
           Row(
             children: [
               Expanded(
                 child: _buildStatCard(
-                  "Today",
-                  currencyFormat.format(spendToday),
+                  'Today',
+                  spendToday,
                   Icons.today_rounded,
-                  Colors.orange.shade700,
+                  kFuelOrange,
                 ),
               ),
-              const SizedBox(width: 15),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
-                  "This Week",
-                  currencyFormat.format(spendWeek),
-                  Icons.analytics_outlined,
-                  Colors.blue.shade700,
+                  'This Week',
+                  spendWeek,
+                  Icons.date_range_rounded,
+                  const Color(0xFF8B5CF6),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 25),
-
-          // কুইক অ্যাকশন বাটন
+          const SizedBox(height: 12),
+          FuelSectionCard(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.local_gas_station_rounded,
+                      size: 18,
+                      color: kFuelOrange,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        "Today's share of this week",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: kTextColorDark,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${(todayShare * 100).round()}%',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: kFuelOrange,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: todayShare),
+                  duration: const Duration(milliseconds: 1200),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, v, _) => ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Stack(
+                      children: [
+                        Container(height: 12, color: const Color(0xFFF1F5F9)),
+                        FractionallySizedBox(
+                          widthFactor: v,
+                          child: Container(
+                            height: 12,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [kFuelAmber, kFuelOrange],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '৳ ${_money.format(spendToday)} of ৳ ${_money.format(spendWeek)} spent this week',
+                  style: const TextStyle(fontSize: 12, color: kHintColor),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const DashboardSectionTitle('Quick actions'),
           _buildActionItem(
-            Icons.history_rounded,
-            "Transaction History",
-            "Check all your past records",
-            onTap: () {
-              // Navigator.push...
-            },
+            Icons.receipt_long_rounded,
+            'Transaction History',
+            'Check all your past fuel payments',
+            const Color(0xFF8B5CF6),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const DriverTransactionHistoryScreen(),
+              ),
+            ),
           ),
           _buildActionItem(
-            Icons.info_outline_rounded,
-            "Wallet Information",
-            "How your balance is calculated",
-            onTap: () {},
+            Icons.qr_code_2_rounded,
+            'Show My QR Code',
+            'Pay for fuel at the station',
+            kFuelOrange,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DriverQrCodeScreen()),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBalanceCard(String balance) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          colors: [kPrimaryDarkBlue, Color(0xFF2A3A8C)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: kPrimaryDarkBlue.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+  Widget _buildBalanceCard(double balance) {
+    return FuelPaymentCard(
+      aspectRatio: 2.1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Total Balance',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            balance,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 34,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                "Active Status",
-                style: TextStyle(color: Colors.white60, fontSize: 12),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  "Verified",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
+                'FUEL WALLET',
+                style: TextStyle(
+                  color: kFuelAmber,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
                 ),
               ),
+              const Spacer(),
+              const CardChip(),
             ],
           ),
+          const Spacer(),
+          Text(
+            'Total Balance',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 13,
+            ),
+          ),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: balance),
+            duration: const Duration(seconds: 2),
+            curve: Curves.easeOutExpo,
+            builder: (context, v, _) => FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '৳ ${_money.format(v)}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const FuelStatusBadge('Active', onDark: true),
         ],
       ),
     );
@@ -230,7 +284,7 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
 
   Widget _buildStatCard(
     String label,
-    String value,
+    double value,
     IconData icon,
     Color color,
   ) {
@@ -241,23 +295,41 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 24),
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
           const SizedBox(height: 12),
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-          const SizedBox(height: 4),
-          FittedBox(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          Text(label, style: const TextStyle(color: kHintColor, fontSize: 13)),
+          const SizedBox(height: 2),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: value),
+            duration: const Duration(milliseconds: 1500),
+            curve: Curves.easeOutExpo,
+            builder: (context, v, _) => FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '৳ ${_money.format(v)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  color: kTextColorDark,
+                ),
+              ),
             ),
           ),
         ],
@@ -268,51 +340,44 @@ class _WalletSummaryScreenState extends State<WalletSummaryScreen> {
   Widget _buildActionItem(
     IconData icon,
     String title,
-    String subtitle, {
+    String subtitle,
+    Color color, {
     VoidCallback? onTap,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ListTile(
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: Colors.blue.shade50,
-          child: Icon(icon, color: kPrimaryDarkBlue, size: 20),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [color.withOpacity(0.85), color]),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: const TextStyle(fontSize: 12, color: kHintColor),
         ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 14,
-          color: Colors.grey,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorView({String? message}) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, color: Colors.redAccent, size: 60),
-          const SizedBox(height: 10),
-          Text(message ?? _errorMessage ?? "An error occurred"),
-          TextButton(
-            onPressed: _fetchWalletSummary,
-            child: const Text("Retry"),
-          ),
-        ],
+        trailing: Icon(Icons.arrow_forward_rounded, size: 18, color: color),
       ),
     );
   }

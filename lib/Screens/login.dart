@@ -1,3 +1,4 @@
+import 'package:petro_app/api_config.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:petro_app/Screens/Station/StationDashboard.dart';
@@ -5,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:petro_app/Screens/Driver/DriverDashboard.dart';
 import 'package:petro_app/Screens/register.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:petro_app/widgets/fuel_animations.dart';
 
 // --- MAIN APPLICATION SETUP ---
 
@@ -64,8 +66,7 @@ const Color kHintColor = Color(0xFF9CA3AF);
 
 // --- Simple API Service to handle the POST request ---
 class ApiService {
-  static const String _loginUrl =
-      "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/auth/login";
+  static const String _loginUrl = ApiConfig.login;
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final Map<String, dynamic> payload = {"email": email, "password": password};
@@ -114,8 +115,7 @@ class ApiService {
       };
     }
 
-    const String profileUrl =
-        "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/driver/me";
+    const String profileUrl = ApiConfig.driverMe;
 
     try {
       final response = await http.get(
@@ -153,8 +153,7 @@ class ApiService {
       };
     }
 
-    const String qrCodeUrl =
-        "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/driver/qr";
+    const String qrCodeUrl = ApiConfig.driverQr;
 
     try {
       final response = await http.get(
@@ -204,7 +203,7 @@ class ApiService {
     }
 
     final uri = Uri.parse(
-      "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/driver/transactions",
+      ApiConfig.driverTransactions,
     ).replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
 
     try {
@@ -235,8 +234,7 @@ class ApiService {
       };
     }
 
-    const String walletUrl =
-        "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/driver/wallet";
+    const String walletUrl = ApiConfig.driverWallet;
 
     try {
       final response = await http.get(
@@ -359,10 +357,6 @@ class AuthenticationScreenState extends State<LoginPage>
   bool _obscureLoginPass = true;
   bool _isLoading = false;
 
-  // --- Animation Controller for the Logo ---
-  late AnimationController _logoAnimationController;
-  late Animation<double> _logoFadeAnimation;
-
   // --- Entrance Animation ---
   late AnimationController _entranceController;
   late Animation<double> _fadeAnimation;
@@ -371,18 +365,6 @@ class AuthenticationScreenState extends State<LoginPage>
   @override
   void initState() {
     super.initState();
-
-    _logoAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-
-    _logoFadeAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoAnimationController,
-        curve: Curves.easeInOut,
-      ),
-    );
 
     _entranceController = AnimationController(
       vsync: this,
@@ -406,7 +388,6 @@ class AuthenticationScreenState extends State<LoginPage>
   void dispose() {
     loginEmailCTRL.dispose();
     loginPasswordCTRL.dispose();
-    _logoAnimationController.dispose();
     _entranceController.dispose();
     super.dispose();
   }
@@ -486,46 +467,128 @@ class AuthenticationScreenState extends State<LoginPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // 1. Professional Gradient Background
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [kPrimaryDarkBlue, kAccentBlue],
-              ),
-            ),
-          ),
-          // 2. Decorative Background Elements
-          Positioned(
-            top: -60,
-            left: -60,
-            child: CircleAvatar(
-              radius: 100,
-              backgroundColor: Colors.white.withOpacity(0.05),
-            ),
-          ),
-          Positioned(
-            bottom: -40,
-            right: -40,
-            child: CircleAvatar(
-              radius: 80,
-              backgroundColor: Colors.white.withOpacity(0.05),
-            ),
-          ),
-          // 3. Main Content with Entrance Animation
-          Center(
+      backgroundColor: kFuelDeepNavy,
+      body: FuelAnimatedBackground(
+        child: SafeArea(
+          child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: _buildLoginForm(context),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Column(
+                  children: [
+                    _buildHero(),
+                    const SizedBox(height: 22),
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: _buildLoginForm(context),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.verified_user_outlined,
+                          size: 14,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Secured cashless fuel payment",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- Hero: animated fuel tank gauge + brand ---
+  Widget _buildHero() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Column(
+        children: [
+          const FuelTankLogo(size: 150),
+          const SizedBox(height: 14),
+          RichText(
+            text: const TextSpan(
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+              children: [
+                TextSpan(
+                  text: "WMS ",
+                  style: TextStyle(color: Colors.white),
+                ),
+                TextSpan(
+                  text: "CWallet",
+                  style: TextStyle(color: kFuelAmber),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Scan • Pay • Fuel up — 100% cashless",
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 13,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildFeatureChip(Icons.qr_code_scanner_rounded, "QR Pay"),
+              _buildFeatureChip(
+                Icons.account_balance_wallet_outlined,
+                "Wallet",
+              ),
+              _buildFeatureChip(Icons.receipt_long_outlined, "Live Receipts"),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: kFuelAmber),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -535,113 +598,117 @@ class AuthenticationScreenState extends State<LoginPage>
 
   // --- Build Method for Login Form ---
   Widget _buildLoginForm(BuildContext context) {
-    return Card(
-      elevation: 10,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-        child: Form(
-          key: _loginFormKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Logo with Animation
-              FadeTransition(
-                opacity: _logoFadeAnimation,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x40000000),
+            blurRadius: 30,
+            offset: Offset(0, 14),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+      child: Form(
+        key: _loginFormKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    shape: BoxShape.circle,
+                    color: kAccentBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/icons/icon.png',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.shield_moon_outlined,
-                          size: 80,
-                          color: kPrimaryDarkBlue.withOpacity(0.8),
-                        );
-                      },
-                    ),
+                  child: const Icon(
+                    Icons.login_rounded,
+                    color: kPrimaryDarkBlue,
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                "Welcome Back",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: kTextColorDark,
-                ),
-              ),
-              Text(
-                "Sign in to your account",
-                style: const TextStyle(fontSize: 14, color: kHintColor),
-              ),
-              const SizedBox(height: 24),
-
-              // Email Field
-              _buildCustomTextField(
-                controller: loginEmailCTRL,
-                label: "EMAIL ADDRESS",
-                hint: "e.g., user@example.com",
-                icon: Icons.email_outlined,
-                validator: (val) =>
-                    val == null || val.isEmpty ? "Required field" : null,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16),
-
-              // Password Field
-              _buildCustomTextField(
-                controller: loginPasswordCTRL,
-                label: "PASSWORD",
-                hint: "********",
-                icon: Icons.lock_outline,
-                obscureText: _obscureLoginPass,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureLoginPass ? Icons.visibility_off : Icons.visibility,
-                    color: kHintColor,
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Welcome Back",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: kTextColorDark,
+                        ),
+                      ),
+                      Text(
+                        "Sign in as Driver or Station",
+                        style: TextStyle(fontSize: 13, color: kHintColor),
+                      ),
+                    ],
                   ),
-                  onPressed: () =>
-                      setState(() => _obscureLoginPass = !_obscureLoginPass),
                 ),
-                validator: (val) => val == null || val.length < 5
-                    ? "Password must be 5+ characters"
-                    : null,
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Email Field
+            FuelTextField(
+              controller: loginEmailCTRL,
+              label: "EMAIL ADDRESS",
+              hint: "e.g., user@example.com",
+              icon: Icons.alternate_email_rounded,
+              validator: (val) =>
+                  val == null || val.isEmpty ? "Required field" : null,
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
+
+            // Password Field
+            FuelTextField(
+              controller: loginPasswordCTRL,
+              label: "PASSWORD",
+              hint: "••••••••",
+              icon: Icons.lock_outline_rounded,
+              obscureText: _obscureLoginPass,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureLoginPass
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: kHintColor,
+                ),
+                onPressed: () =>
+                    setState(() => _obscureLoginPass = !_obscureLoginPass),
               ),
-              const SizedBox(height: 8),
+              validator: (val) => val == null || val.length < 5
+                  ? "Password must be 5+ characters"
+                  : null,
+            ),
+            const SizedBox(height: 28),
 
-              const SizedBox(height: 24),
+            // Login Button (Calls the API logic)
+            FuelGradientButton(
+              text: "LOGIN & FUEL UP",
+              onPressed: _handleLogin,
+              isLoading: _isLoading,
+            ),
+            const SizedBox(height: 12),
 
-              // Login Button (Calls the API logic)
-              _buildActionButton(
-                text: "LOGIN",
-                onPressed: _handleLogin,
-                isLoading: _isLoading,
-              ),
-              const SizedBox(height: 16),
-
-              // Register Link (Now navigates to RegisterPage)
-              Wrap(
+            // Register Link
+            Center(
+              child: Wrap(
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text(
-                    "Don't have account?",
-                    style: TextStyle(color: kTextColorDark),
+                    "Don't have an account?",
+                    style: TextStyle(color: kTextColorDark, fontSize: 13),
                   ),
                   TextButton(
                     onPressed: () {
-                      // --- NEW NAVIGATION HERE ---
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => const RegisterPage(),
@@ -649,7 +716,7 @@ class AuthenticationScreenState extends State<LoginPage>
                       );
                     },
                     child: const Text(
-                      "Create a new account!",
+                      "Create one",
                       style: TextStyle(
                         color: kAccentBlue,
                         fontWeight: FontWeight.bold,
@@ -658,125 +725,9 @@ class AuthenticationScreenState extends State<LoginPage>
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-
-  // --- Helper Widget for Custom Text Fields ---
-  Widget _buildCustomTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4.0, bottom: 4.0),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: kHintColor,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
-          style: const TextStyle(color: kTextColorDark),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.grey[100],
-            hintText: hint,
-            hintStyle: TextStyle(color: kHintColor),
-            prefixIcon: Icon(icon, color: kPrimaryDarkBlue),
-            suffixIcon: suffixIcon,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: kPrimaryDarkBlue, width: 2.0),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 1.5),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 2.0),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 14.0,
-              horizontal: 10.0,
-            ),
-          ),
-          validator: validator,
-        ),
-      ],
-    );
-  }
-
-  // --- Helper Widget for Action Buttons ---
-  Widget _buildActionButton({
-    required String text,
-    required VoidCallback onPressed,
-    required bool isLoading,
-  }) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: kPrimaryDarkBlue.withOpacity(0.3),
-            blurRadius: 7,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: kPrimaryDarkBlue,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          elevation: 0,
-        ),
-        child: isLoading
-            ? const SizedBox(
-                height: 18,
-                width: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 14.0,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
       ),
     );
   }

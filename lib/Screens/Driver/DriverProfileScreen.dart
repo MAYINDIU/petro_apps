@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:petro_app/Screens/login.dart';
+import 'package:petro_app/widgets/fuel_animations.dart';
+import 'package:petro_app/widgets/page_widgets.dart';
 
 class DriverProfileScreen extends StatefulWidget {
   const DriverProfileScreen({super.key});
@@ -21,6 +24,10 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
   }
 
   Future<void> _fetchDriverProfile() async {
+    setState(() {
+      _errorMessage = null;
+      if (_driverProfile == null) _isLoading = true;
+    });
     try {
       final response = await _apiService.getDriverProfile();
       if (mounted) {
@@ -45,192 +52,209 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final driver = _driverProfile?['driver'] as Map<String, dynamic>?;
+    final name = driver?['name']?.toString() ?? '';
+
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFF5F7FA,
-      ), // Light grey background for professional look
-      appBar: AppBar(
-        title: const Text(
-          'My Profile',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      backgroundColor: kPageBackground,
+      body: RefreshIndicator(
+        onRefresh: _fetchDriverProfile,
+        color: kPrimaryDarkBlue,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: FuelPageHeader(
+                title: 'My Profile',
+                subtitle: 'Account & assignment details',
+                watermark: Icons.person_rounded,
+                child: _isLoading || _errorMessage != null
+                    ? null
+                    : _buildProfileHeader(name, driver?['status']?.toString()),
+              ),
+            ),
+            if (_isLoading)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: FuelLoadingView(message: 'Loading profile...'),
+              )
+            else if (_errorMessage != null)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: FuelStateView.error(
+                  message: _errorMessage,
+                  onRetry: _fetchDriverProfile,
+                ),
+              )
+            else
+              SliverToBoxAdapter(child: _buildProfileContent()),
+          ],
         ),
-        // Setting foregroundColor to white handles both the back button and the title text
-        foregroundColor: Colors.white,
-        backgroundColor: kPrimaryDarkBlue,
-        elevation: 0,
-        centerTitle: true,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-          ? _buildErrorView()
-          : _buildProfileContent(),
+    );
+  }
+
+  Widget _buildProfileHeader(String name, String? status) {
+    return Row(
+      children: [
+        FuelAvatar(name: name, radius: 32),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  if (status != null) FuelStatusBadge(status, onDark: true),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.local_shipping_rounded,
+                    size: 14,
+                    color: kFuelAmber,
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'Driver',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildProfileContent() {
-    final driver = _driverProfile!['driver'];
-    final assignment = _driverProfile!['assignment'];
-    final wallet = _driverProfile!['wallet_balance']?.toString() ?? '0.00';
+    final driver = _driverProfile!['driver'] as Map<String, dynamic>? ?? {};
+    final assignment = _driverProfile!['assignment'] as Map<String, dynamic>?;
+    final owner = assignment?['owner'] as Map<String, dynamic>?;
+    final vehicle = assignment?['vehicle'] as Map<String, dynamic>?;
+    final wallet =
+        double.tryParse(_driverProfile!['wallet_balance']?.toString() ?? '') ??
+        0;
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Professional Header Section
-          Container(
-            height: 150,
-            decoration: BoxDecoration(
-              color: kPrimaryDarkBlue,
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(30),
-              ),
-            ),
-            child: Center(
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.white24,
-                    child: Icon(Icons.person, size: 50, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
+    String text(dynamic v) =>
+        (v == null || v.toString().isEmpty) ? 'N/A' : v.toString();
 
-          // Profile Details Card
-          Transform.translate(
-            offset: const Offset(0, -30),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              padding: const EdgeInsets.all(25),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  _infoTile(Icons.person_outline, "Full Name", driver['name']),
-                  _infoTile(
-                    Icons.email_outlined,
-                    "Email Address",
-                    driver['email'],
-                  ),
-                  _infoTile(
-                    Icons.phone_outlined,
-                    "Phone Number",
-                    driver['phone'],
-                  ),
-                  _infoTile(
-                    Icons.verified_user_outlined,
-                    "Account Status",
-                    driver['status'],
-                  ),
-                  if (assignment != null) ...[
-                    const Divider(height: 30, thickness: 1),
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 10.0),
-                      child: Text(
-                        "Assignment Details",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: kPrimaryDarkBlue,
-                        ),
-                      ),
-                    ),
-                    if (assignment['owner'] != null) ...[
-                      _infoTile(
-                        Icons.business_center_outlined,
-                        "Owner Name",
-                        assignment['owner']['name'] ?? 'N/A',
-                      ),
-                      _infoTile(
-                        Icons.support_agent,
-                        "Owner Contact",
-                        assignment['owner']['phone'] ?? 'N/A',
-                      ),
-                    ],
-                    if (assignment['vehicle'] != null) ...[
-                      _infoTile(
-                        Icons.directions_bus_outlined,
-                        "Vehicle Plate",
-                        assignment['vehicle']['plate_number'] ?? 'N/A',
-                      ),
-                      _infoTile(
-                        Icons.info_outline,
-                        "Vehicle Model",
-                        assignment['vehicle']['model'] ?? 'N/A',
-                      ),
-                    ],
-                  ],
-                  const Divider(height: 30),
-                  _walletTile(wallet),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _infoTile(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+      child: Column(
         children: [
-          Icon(icon, color: kPrimaryDarkBlue, size: 22),
-          const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
+          _walletTile(wallet),
+          const SizedBox(height: 16),
+          FuelSectionCard(
+            title: 'Personal information',
+            icon: Icons.badge_rounded,
+            child: Column(
+              children: [
+                FuelInfoRow(
+                  icon: Icons.person_outline_rounded,
+                  label: 'Full Name',
+                  value: text(driver['name']),
                 ),
-              ),
-            ],
+                FuelInfoRow(
+                  icon: Icons.alternate_email_rounded,
+                  label: 'Email Address',
+                  value: text(driver['email']),
+                ),
+                FuelInfoRow(
+                  icon: Icons.phone_iphone_rounded,
+                  label: 'Phone Number',
+                  value: text(driver['phone']),
+                ),
+                FuelInfoRow(
+                  icon: Icons.verified_user_outlined,
+                  label: 'Account Status',
+                  value: text(driver['status']).toUpperCase(),
+                  showDivider: false,
+                ),
+              ],
+            ),
           ),
+          if (assignment != null) ...[
+            const SizedBox(height: 16),
+            FuelSectionCard(
+              title: 'Assignment',
+              icon: Icons.directions_bus_rounded,
+              child: Column(
+                children: [
+                  if (vehicle != null) ...[
+                    const SizedBox(height: 6),
+                    _plateBadge(text(vehicle['plate_number'])),
+                    const SizedBox(height: 6),
+                    FuelInfoRow(
+                      icon: Icons.info_outline_rounded,
+                      label: 'Vehicle Model',
+                      value: text(vehicle['model']),
+                      showDivider: owner != null,
+                    ),
+                  ],
+                  if (owner != null) ...[
+                    FuelInfoRow(
+                      icon: Icons.business_center_outlined,
+                      label: 'Owner Name',
+                      value: text(owner['name']),
+                    ),
+                    FuelInfoRow(
+                      icon: Icons.support_agent_rounded,
+                      label: 'Owner Contact',
+                      value: text(owner['phone']),
+                      showDivider: false,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _walletTile(String balance) {
+  /// Number-plate style badge for the assigned vehicle.
+  Widget _plateBadge(String plate) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: kFuelAmber, width: 2),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          const Icon(Icons.directions_bus_rounded, color: kFuelOrange),
+          const SizedBox(width: 10),
           const Text(
-            "Wallet Balance",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(
-            "৳ $balance",
+            'PLATE',
             style: TextStyle(
-              color: kPrimaryDarkBlue,
-              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF9A3412),
+              letterSpacing: 1,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            plate,
+            style: const TextStyle(
               fontSize: 18,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2,
+              color: kTextColorDark,
             ),
           ),
         ],
@@ -238,21 +262,60 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     );
   }
 
-  Widget _buildErrorView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.warning_amber_rounded,
-            size: 60,
-            color: Colors.orange,
+  Widget _walletTile(double balance) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [kFuelAmber, kFuelOrange],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: kFuelOrange.withOpacity(0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
-          const SizedBox(height: 10),
-          Text(_errorMessage!),
-          ElevatedButton(
-            onPressed: _fetchDriverProfile,
-            child: const Text("Retry"),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.account_balance_wallet_rounded,
+              color: kFuelDeepNavy,
+            ),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Text(
+              'Wallet Balance',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: kFuelDeepNavy,
+                fontSize: 15,
+              ),
+            ),
+          ),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: balance),
+            duration: const Duration(milliseconds: 1500),
+            curve: Curves.easeOutExpo,
+            builder: (context, v, _) => Text(
+              '৳ ${NumberFormat('#,##0.00').format(v)}',
+              style: const TextStyle(
+                color: kFuelDeepNavy,
+                fontWeight: FontWeight.w800,
+                fontSize: 20,
+              ),
+            ),
           ),
         ],
       ),

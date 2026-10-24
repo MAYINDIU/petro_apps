@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:petro_app/Screens/Driver/DriverDashboard.dart';
 import 'package:petro_app/Screens/Station/StationDashboard.dart';
 import 'package:petro_app/Screens/login.dart';
+import 'package:petro_app/widgets/fuel_animations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -22,10 +23,6 @@ class _SplashScreenState extends State<SplashScreen>
   // New animation controller for the continuous zoom effect
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
-
-  // Colors
-  static const Color startBlue = Color(0xFF42A5F5);
-  static const Color endBlue = Color(0xFF0D47A1);
 
   @override
   void initState() {
@@ -112,16 +109,8 @@ class _SplashScreenState extends State<SplashScreen>
     final double sloganSize = size.width * 0.045;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [startBlue, endBlue],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+      backgroundColor: kFuelDeepNavy,
+      body: FuelAnimatedBackground(
         child: Center(
           child: SingleChildScrollView(
             child: Column(
@@ -135,36 +124,8 @@ class _SplashScreenState extends State<SplashScreen>
                   child: ScaleTransition(
                     // Initial entrance scale effect
                     scale: _logoScale,
-                    child: Container(
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.15),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.4),
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 30,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: Image.asset(
-                          'assets/icons/icon.png',
-                          height: size.width * 0.4,
-                          width: size.width * 0.4,
-                          fit: BoxFit.cover,
-                          errorBuilder: (c, e, s) => Icon(
-                            Icons.security,
-                            size: size.width * 0.2,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                    child: FuelTankLogo(
+                      size: (size.width * 0.5).clamp(140.0, 220.0),
                     ),
                   ),
                 ),

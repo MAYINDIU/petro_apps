@@ -1,6 +1,8 @@
+import 'package:petro_app/api_config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:petro_app/widgets/fuel_animations.dart';
 
 // NOTE: These colors are copied from your main.dart file for consistent styling
 const Color kPrimaryDarkBlue = Color(0xFF1E40AF);
@@ -13,8 +15,7 @@ const Color kTextColorLight = Color(0xFFF9FAFB);
 
 // --- API Service for OTP Registration Flow ---
 class ApiService {
-  static const String _registerUrl =
-      "https://alhamarahomesbd.com/cashless-fuel-api/public/api/v1/auth/register";
+  static const String _registerUrl = ApiConfig.register;
 
   Future<Map<String, dynamic>> registerUser({
     required String name,
@@ -59,12 +60,63 @@ class ApiService {
   }
 }
 
-// --- Main Registration Screen with Tabs (RegisterPage) ---
-class RegisterPage extends StatelessWidget {
+// --- Main Registration Screen (RegisterPage) ---
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
-  // Placeholder for navigation logic (pop back to LoginPage)
-  void _navigateToLogin(BuildContext context) {
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RoleOption {
+  final String role;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  const _RoleOption(this.role, this.title, this.subtitle, this.icon);
+}
+
+class _RegisterPageState extends State<RegisterPage>
+    with SingleTickerProviderStateMixin {
+  static const _roles = [
+    _RoleOption(
+      'bus_owner',
+      'Bus Owner',
+      'Pay fuel for your fleet',
+      Icons.directions_bus_rounded,
+    ),
+    _RoleOption(
+      'station',
+      'Station',
+      'Accept cashless payments',
+      Icons.local_gas_station_rounded,
+    ),
+  ];
+
+  String _selectedRole = 'bus_owner';
+
+  late final AnimationController _entranceController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 800),
+  )..forward();
+
+  late final Animation<double> _fadeAnimation = CurvedAnimation(
+    parent: _entranceController,
+    curve: Curves.easeOut,
+  );
+
+  late final Animation<Offset> _slideAnimation =
+      Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(
+        CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
+      );
+
+  @override
+  void dispose() {
+    _entranceController.dispose();
+    super.dispose();
+  }
+
+  void _navigateToLogin() {
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
@@ -72,115 +124,44 @@ class RegisterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The DefaultTabController manages the state for the TabBar and TabBarView
-    return DefaultTabController(
-      length: 2, // Customer and Agent tabs
-      child: Scaffold(
-        backgroundColor: kScaffoldBackground,
-        appBar: AppBar(
-          title: const Text(
-            'Create Account',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    return Scaffold(
+      backgroundColor: kFuelDeepNavy,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Material(
+            color: Colors.white.withOpacity(0.15),
+            shape: const CircleBorder(),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+              onPressed: _navigateToLogin,
+            ),
           ),
-          // Dark Blue AppBar
-          backgroundColor: kPrimaryDarkBlue,
-          iconTheme: const IconThemeData(color: Colors.white),
-          elevation: 4,
         ),
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 5.0),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 550),
-              child: Card(
-                elevation: 12,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      // Header Text
-                      const Text(
-                        "Registration With Us",
-                        style: TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.bold,
-                          color: kPrimaryDarkBlue,
-                        ),
+      ),
+      body: FuelAnimatedBackground(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 20),
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: _buildCard(),
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Register as a new Bus Owner or Station Driver",
-                        style: TextStyle(fontSize: 16, color: kHintColor),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // --- Tab Bar (Role Selector) ---
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(
-                            color: kHintColor.withOpacity(0.3),
-                          ),
-                        ),
-                        child: TabBar(
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          indicator: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            // Dark Blue Tab Indicator
-                            color: kPrimaryDarkBlue,
-                          ),
-                          labelColor: kTextColorLight,
-                          unselectedLabelColor: kTextColorDark.withOpacity(0.7),
-                          labelStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                          tabs: const [
-                            Tab(text: 'Bus Owner'),
-                            Tab(text: 'Station'),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-
-                      // --- Tab Content (Registration Forms) ---
-                      // Adjusted height to comfortably fit all form elements
-                      SizedBox(
-                        height: 600,
-                        child: TabBarView(
-                          children: [
-                            _GenericRegistrationForm(
-                              role: 'bus_owner',
-                              onSuccess: () => _navigateToLogin(context),
-                            ),
-                            _GenericRegistrationForm(
-                              role: 'station',
-                              onSuccess: () => _navigateToLogin(context),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // --- Back to Login Link ---
-                      TextButton(
-                        onPressed: () => _navigateToLogin(context),
-                        child: const Text(
-                          "Already have an account? Login here",
-                          // Accent Blue Text Button
-                          style: TextStyle(
-                            color: kAccentBlue,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -189,121 +170,208 @@ class RegisterPage extends StatelessWidget {
       ),
     );
   }
-}
 
-// --- Common Custom Text Field Style ---
-Widget _buildCustomTextField({
-  required TextEditingController controller,
-  required String label,
-  required String hint,
-  required IconData icon,
-  TextInputType keyboardType = TextInputType.text,
-  bool obscureText = false,
-  Widget? suffixIcon,
-  String? Function(String?)? validator,
-}) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(left: 4.0, bottom: 4.0),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: kHintColor,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
+  Widget _buildHeader() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Column(
+        children: [
+          const FuelTankLogo(size: 96),
+          const SizedBox(height: 10),
+          RichText(
+            text: const TextSpan(
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+              children: [
+                TextSpan(
+                  text: "Join ",
+                  style: TextStyle(color: Colors.white),
+                ),
+                TextSpan(
+                  text: "WMS CWallet",
+                  style: TextStyle(color: kFuelAmber),
+                ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(height: 4),
+          Text(
+            "Create your account and go cashless at the pump",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 13,
+            ),
+          ),
+        ],
       ),
-      TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        obscureText: obscureText,
-        style: const TextStyle(color: kTextColorDark),
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.grey[50],
-          hintText: hint,
-          hintStyle: TextStyle(color: kHintColor),
-          // Dark Blue prefix icon
-          prefixIcon: Icon(icon, color: kPrimaryDarkBlue),
-          suffixIcon: suffixIcon,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            // Dark Blue focused border
-            borderSide: const BorderSide(color: kPrimaryDarkBlue, width: 2.0),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 14.0,
-            horizontal: 10.0,
-          ),
-        ),
-        validator: validator,
-      ),
-    ],
-  );
-}
+    );
+  }
 
-// --- Common Action Button Style ---
-Widget _buildActionButton({
-  required String text,
-  required VoidCallback onPressed,
-  bool isLoading = false,
-}) {
-  return Container(
-    width: double.infinity,
-    margin: const EdgeInsets.only(top: 10),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(8),
-      boxShadow: [
-        BoxShadow(
-          color: kPrimaryDarkBlue.withOpacity(0.3),
-          blurRadius: 7,
-          offset: const Offset(0, 5),
-        ),
-      ],
-    ),
-    child: ElevatedButton(
-      onPressed: isLoading ? null : onPressed,
-      style: ElevatedButton.styleFrom(
-        // Dark Blue button background
-        backgroundColor: kPrimaryDarkBlue,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        elevation: 0,
+  Widget _buildCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x40000000),
+            blurRadius: 30,
+            offset: Offset(0, 14),
+          ),
+        ],
       ),
-      child: isLoading
-          ? const SizedBox(
-              height: 24,
-              width: 24,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
-              ),
-            )
-          : Text(
-              text,
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            "I am a...",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: kTextColorDark,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              for (var i = 0; i < _roles.length; i++) ...[
+                if (i > 0) const SizedBox(width: 12),
+                Expanded(child: _buildRoleTile(_roles[i])),
+              ],
+            ],
+          ),
+          const SizedBox(height: 22),
+          _GenericRegistrationForm(
+            role: _selectedRole,
+            roleTitle: _roles.firstWhere((r) => r.role == _selectedRole).title,
+            onSuccess: _navigateToLogin,
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                const Text(
+                  "Already have an account?",
+                  style: TextStyle(color: kTextColorDark, fontSize: 13),
+                ),
+                TextButton(
+                  onPressed: _navigateToLogin,
+                  child: const Text(
+                    "Login",
+                    style: TextStyle(
+                      color: kAccentBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoleTile(_RoleOption option) {
+    final selected = option.role == _selectedRole;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedRole = option.role),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: selected
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [kFuelBlue, kFuelCyan],
+                )
+              : null,
+          color: selected ? null : const Color(0xFFF8FAFC),
+          border: Border.all(
+            color: selected ? Colors.transparent : const Color(0xFFE5E7EB),
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: kFuelBlue.withOpacity(0.3),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : const [],
+        ),
+        child: Column(
+          children: [
+            AnimatedScale(
+              scale: selected ? 1.1 : 1.0,
+              duration: const Duration(milliseconds: 300),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: selected
+                      ? Colors.white.withOpacity(0.2)
+                      : kAccentBlue.withOpacity(0.1),
+                ),
+                child: Icon(
+                  option.icon,
+                  size: 28,
+                  color: selected ? kFuelAmber : kPrimaryDarkBlue,
+                ),
               ),
             ),
-    ),
-  );
+            const SizedBox(height: 8),
+            Text(
+              option.title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: selected ? Colors.white : kTextColorDark,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              option.subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: selected ? Colors.white.withOpacity(0.85) : kHintColor,
+              ),
+            ),
+            const SizedBox(height: 6),
+            AnimatedOpacity(
+              opacity: selected ? 1 : 0,
+              duration: const Duration(milliseconds: 300),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-// --- Generic Registration Form Widget (Driver/Station) ---
+// --- Registration Form Widget (Bus Owner/Station) ---
 class _GenericRegistrationForm extends StatefulWidget {
   final String role;
+  final String roleTitle;
   final VoidCallback onSuccess;
-  const _GenericRegistrationForm({required this.role, required this.onSuccess});
+  const _GenericRegistrationForm({
+    required this.role,
+    required this.roleTitle,
+    required this.onSuccess,
+  });
 
   @override
   _GenericRegistrationFormState createState() =>
@@ -323,6 +391,16 @@ class _GenericRegistrationFormState extends State<_GenericRegistrationForm> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   final ApiService _apiService = ApiService();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   void _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
@@ -377,95 +455,168 @@ class _GenericRegistrationFormState extends State<_GenericRegistrationForm> {
     );
   }
 
+  // 0..4 based on length, digits, upper-case letters and symbols.
+  int get _passwordScore {
+    final p = _passwordController.text;
+    if (p.isEmpty) return 0;
+    var score = 0;
+    if (p.length >= 6) score++;
+    if (p.length >= 10) score++;
+    if (RegExp(r'\d').hasMatch(p) && RegExp(r'[A-Za-z]').hasMatch(p)) score++;
+    if (RegExp(r'[A-Z]').hasMatch(p) || RegExp(r'[^A-Za-z0-9]').hasMatch(p)) {
+      score++;
+    }
+    return score;
+  }
+
+  Widget _buildPasswordStrength() {
+    final score = _passwordScore;
+    const labels = ['Too short', 'Weak', 'Fair', 'Good', 'Strong'];
+    const colors = [
+      Colors.red,
+      Colors.redAccent,
+      kFuelOrange,
+      kFuelAmber,
+      Colors.green,
+    ];
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 250),
+      child: _passwordController.text.isEmpty
+          ? const SizedBox(width: double.infinity)
+          : Padding(
+              padding: const EdgeInsets.only(top: 8, left: 4, right: 4),
+              child: Row(
+                children: [
+                  for (var i = 0; i < 4; i++) ...[
+                    Expanded(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        height: 5,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: i < score
+                              ? colors[score]
+                              : const Color(0xFFE5E7EB),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  const SizedBox(width: 6),
+                  Text(
+                    labels[score],
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: colors[score],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            _buildCustomTextField(
-              controller: _nameController,
-              label: 'FULL NAME',
-              hint: 'e.g., John Doe',
-              icon: Icons.person_outline,
-              validator: (value) =>
-                  (value == null || value.isEmpty) ? 'Name is required' : null,
-            ),
-            const SizedBox(height: 15),
-            _buildCustomTextField(
-              controller: _emailController,
-              label: 'EMAIL ADDRESS',
-              hint: 'e.g., user@example.com',
-              icon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-              validator: (value) => (value == null || !value.contains('@'))
-                  ? 'Enter a valid email'
-                  : null,
-            ),
-            const SizedBox(height: 15),
-            _buildCustomTextField(
-              controller: _phoneController,
-              label: 'PHONE NUMBER',
-              hint: 'e.g., 01712345678',
-              icon: Icons.phone_android,
-              keyboardType: TextInputType.phone,
-              validator: (value) => (value == null || value.length < 11)
-                  ? 'Enter a valid 11-digit phone number'
-                  : null,
-            ),
-            const SizedBox(height: 15),
-            _buildCustomTextField(
-              controller: _passwordController,
-              label: 'PASSWORD',
-              hint: '********',
-              icon: Icons.lock_outline,
-              obscureText: _obscurePassword,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: kHintColor,
-                ),
-                onPressed: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          FuelTextField(
+            controller: _nameController,
+            label: widget.role == 'station'
+                ? 'STATION / OWNER NAME'
+                : 'FULL NAME',
+            hint: widget.role == 'station'
+                ? 'e.g., City Fuel Station'
+                : 'e.g., John Doe',
+            icon: widget.role == 'station'
+                ? Icons.storefront_rounded
+                : Icons.person_outline_rounded,
+            validator: (value) =>
+                (value == null || value.isEmpty) ? 'Name is required' : null,
+          ),
+          const SizedBox(height: 14),
+          FuelTextField(
+            controller: _emailController,
+            label: 'EMAIL ADDRESS',
+            hint: 'e.g., user@example.com',
+            icon: Icons.alternate_email_rounded,
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) => (value == null || !value.contains('@'))
+                ? 'Enter a valid email'
+                : null,
+          ),
+          const SizedBox(height: 14),
+          FuelTextField(
+            controller: _phoneController,
+            label: 'PHONE NUMBER',
+            hint: 'e.g., 01712345678',
+            icon: Icons.phone_iphone_rounded,
+            keyboardType: TextInputType.phone,
+            validator: (value) => (value == null || value.length < 11)
+                ? 'Enter a valid 11-digit phone number'
+                : null,
+          ),
+          const SizedBox(height: 14),
+          FuelTextField(
+            controller: _passwordController,
+            label: 'PASSWORD',
+            hint: '••••••••',
+            icon: Icons.lock_outline_rounded,
+            obscureText: _obscurePassword,
+            onChanged: (_) => setState(() {}),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: kHintColor,
               ),
-              validator: (value) => (value == null || value.length < 6)
-                  ? 'Password must be at least 6 chars'
-                  : null,
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
-            const SizedBox(height: 15),
-            _buildCustomTextField(
-              controller: _confirmPasswordController,
-              label: 'CONFIRM PASSWORD',
-              hint: '********',
-              icon: Icons.lock_reset,
-              obscureText: _obscureConfirmPassword,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureConfirmPassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  color: kHintColor,
-                ),
-                onPressed: () => setState(
-                  () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                ),
+            validator: (value) => (value == null || value.length < 6)
+                ? 'Password must be at least 6 chars'
+                : null,
+          ),
+          _buildPasswordStrength(),
+          const SizedBox(height: 14),
+          FuelTextField(
+            controller: _confirmPasswordController,
+            label: 'CONFIRM PASSWORD',
+            hint: '••••••••',
+            icon: Icons.lock_reset_rounded,
+            obscureText: _obscureConfirmPassword,
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureConfirmPassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                color: kHintColor,
               ),
-              validator: (value) => (value == null || value.isEmpty)
-                  ? 'Confirm your password'
-                  : null,
+              onPressed: () => setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword,
+              ),
             ),
-
-            const SizedBox(height: 30),
-            _buildActionButton(
-              text:
-                  'REGISTER AS ${widget.role.toUpperCase().replaceAll('_', ' ')}',
+            validator: (value) => (value == null || value.isEmpty)
+                ? 'Confirm your password'
+                : null,
+          ),
+          const SizedBox(height: 26),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: FuelGradientButton(
+              key: ValueKey(widget.role),
+              text: 'REGISTER AS ${widget.roleTitle.toUpperCase()}',
+              icon: Icons.how_to_reg_rounded,
               onPressed: _handleRegister,
               isLoading: _isLoading,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
