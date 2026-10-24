@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:device_preview/device_preview.dart';
 import 'package:petro_app/Screens/splash_screen.dart';
 
 // Define color constants
@@ -15,13 +13,7 @@ const kTextColor = Color(0xFF212121);
 const double kAppFrameWidth = 460;
 
 void main() {
-  runApp(
-    DevicePreview(
-      // On web the app uses its own centered frame (see _WebFrame).
-      enabled: !kReleaseMode && !kIsWeb,
-      builder: (context) => const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -43,10 +35,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'WMS CWallet',
-      useInheritedMediaQuery: true,
-      locale: DevicePreview.locale(context),
-      builder: (context, child) =>
-          _WebFrame(child: DevicePreview.appBuilder(context, child)),
+      builder: (context, child) => _WebFrame(child: child),
       theme: baseTheme.copyWith(
         textTheme: GoogleFonts.poppinsTextTheme(baseTheme.textTheme),
         appBarTheme: AppBarTheme(
